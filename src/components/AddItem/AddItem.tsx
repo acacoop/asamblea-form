@@ -10,25 +10,15 @@ type Props = {
   onEdit?: (item: { id: string; nombre: string; documento?: string }) => void;
 };
 
-function genId() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
 export default function AddItem({
   initial,
-  onAdd,
+
   onRemove,
   onClose,
   onEdit,
 }: Props) {
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
   const [documento, setDocumento] = useState(initial?.documento ?? "");
-
-  function handleAdd() {
-    const id = initial?.id ?? genId();
-    if (onAdd) onAdd({ id, nombre, documento });
-    if (onClose) onClose();
-  }
 
   function handleRemove() {
     if (!initial?.id) return;
@@ -75,13 +65,6 @@ export default function AddItem({
           </button>
         ) : (
           <>
-            <button
-              className="add-item-button"
-              type="button"
-              onClick={handleAdd}
-            >
-              Guardar
-            </button>
             {onClose && (
               <button
                 className="add-item-button"
