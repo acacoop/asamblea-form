@@ -13,7 +13,10 @@ export default function FormGroup({ cooperativa }: Props) {
   const [codigo, setCodigo] = useState<string>("");
   const [carTexto, setCarTexto] = useState<string>("");
   const [votos, setVotos] = useState<number | "">("");
-  const [suplentes, setSuplentes] = useState<number | "">("");
+
+  const [secretario, setSecretario] = useState<string>("");
+  const [presidente, setPresidente] = useState<string>("");
+  const [contactoEmail, setContactoEmail] = useState<string>("");
 
   // Precarga cuando llega/actualiza la cooperativa (post autenticación)
   useEffect(() => {
@@ -37,13 +40,17 @@ export default function FormGroup({ cooperativa }: Props) {
         : ""
     );
 
-    setSuplentes(
-      typeof cooperativa.substitutes === "number"
-        ? cooperativa.substitutes
-        : cooperativa.substitutes
-        ? Number(cooperativa.substitutes)
-        : ""
-    );
+    // Autoridades y contacto (pueden venir desde formExistingData.datos)
+    const autoridades =
+      (cooperativa as any).autoridades ??
+      (cooperativa as any).autoridad ??
+      null;
+    setSecretario(autoridades?.secretario ?? "");
+    setPresidente(autoridades?.presidente ?? "");
+
+    const contacto =
+      (cooperativa as any).contacto ?? (cooperativa as any).contact ?? null;
+    setContactoEmail(contacto?.correoElectronico ?? contacto?.email ?? "");
   }, [cooperativa]);
 
   return (
@@ -56,42 +63,60 @@ export default function FormGroup({ cooperativa }: Props) {
           name="cooperativa"
           value={coopNombre}
           readOnly // <- solo visual
-          onChange={(v) => setCoopNombre(String(v))}
         />
-        <Input
-          label="Código"
-          name="codigo"
-          value={codigo}
-          readOnly
-          onChange={(v) => setCodigo(String(v))}
-        />
-        <Input
-          label="CAR"
-          name="car"
-          value={carTexto}
-          readOnly
-          onChange={(v) => setCarTexto(String(v))}
-        />
+        <Input label="Código" name="codigo" value={codigo} readOnly />
+        <Input label="CAR" name="car" value={carTexto} readOnly />
         <Input
           label="Votos"
           name="votos"
           type="number"
           value={votos}
           readOnly
-          onChange={(v) => setVotos(v === "" ? "" : Number(v))}
-        />
-        <Input
-          label="Suplentes"
-          name="suplentes"
-          type="number"
-          value={suplentes}
-          readOnly
-          onChange={(v) => setSuplentes(v === "" ? "" : Number(v))}
         />
       </div>
 
-      {/* Si más adelante querés seguir con “Autoridades”, Titulares, etc., dejalos como otra sección editable */}
-      {/* ... */}
+      {(secretario || presidente || contactoEmail) && (
+        <div className="notice">
+          <h3>✏️ Editando registro existente</h3>
+          <p>
+            Se han cargado los datos previamente guardados. Puede modificarlos y
+            guardar nuevamente.
+          </p>
+        </div>
+      )}
+
+      <div className="form-group">
+        <h2 className="title-form-group">Autoridades de la Cooperativa</h2>
+        <Input
+          label="Nombre del Secretario:"
+          name="secretario"
+          value={secretario}
+          onChange={(v) => setSecretario(String(v))}
+        />
+
+        <Input
+          label="Nombre del Presidente:"
+          name="presidente"
+          value={presidente}
+          onChange={(v) => setPresidente(String(v))}
+        />
+
+        <Input
+          label="Correo Electrónico de Contacto:"
+          name="contacto_email"
+          type="email"
+          value={contactoEmail}
+          placeholder="ejemplo@correo.com"
+          onChange={(v) => setContactoEmail(String(v))}
+        />
+        <p className="help-text">
+          Se enviará toda la información de la votación a esta dirección
+        </p>
+      </div>
+
+      <div className="form-group">
+        <h2 className="title-form-group">Titulares</h2>
+      </div>
     </div>
   );
 }

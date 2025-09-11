@@ -32,7 +32,6 @@ async function request<T>(
   try {
     return JSON.parse(text);
   } catch {
-    // si no es JSON válido, devolvemos el texto plano
     return text as unknown as T;
   }
 }
@@ -60,11 +59,6 @@ export async function authCooperativa(
 }
 
 /**
- * Consulta datos existentes de una cooperativa
- */
-// (Eliminada implementación duplicada)
-
-/**
  * Envía los datos del formulario
  */
 export async function guardarFormulario(payload: any) {
@@ -90,7 +84,7 @@ export async function consultarDatos(codigo_cooperativa: string) {
   try {
     const data = await request<ConsultaDatosResponse>(
       CONSULTAR_ENDPOINT,
-      { codigo_cooperativa }, // <- tal cual especificación
+      { codigo_cooperativa },
       controller.signal
     );
     return data;

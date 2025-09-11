@@ -30,16 +30,4 @@ export type ConsultaDatosResponse =
   | { success: true; datos: ConsultaDatosDatos }
   | { success: false; message?: string };
 
-// Utils para parsear campos que pueden venir como string JSON
-export function parseMaybeJsonArray<T = any>(
-  maybe: T[] | string | undefined
-): T[] {
-  if (!maybe) return [];
-  if (Array.isArray(maybe)) return maybe;
-  try {
-    const arr = JSON.parse(maybe);
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
+// Nota: helper parseMaybeJsonArray eliminado (no estaba en uso). Recrear si hace falta.

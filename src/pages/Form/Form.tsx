@@ -26,30 +26,76 @@ export default function Form() {
 
   useEffect(() => {
     try {
-      // First try to use the richer cached response from consultarDatos
       const rawForm = localStorage.getItem("formExistingData");
-      if (rawForm) {
-        const parsedForm = JSON.parse(rawForm);
-        // parsedForm may be { success: true, datos: { cooperativa: {...}, ... } }
-        // or the API might return the full payload with a top-level `cooperativa`.
-        const coopFromForm =
-          parsedForm?.cooperativa ??
-          parsedForm?.datos?.cooperativa ??
-          parsedForm;
-        const normFromForm = normalizeCooperativa(coopFromForm);
-        setCooperativaSeleccionada(normFromForm);
-        return;
+      const rawCoop = localStorage.getItem("cooperativa");
+
+      function findPossibleCooperativa(obj: any): any {
+        if (!obj || typeof obj !== "object") return null;
+        if (obj.cooperativa) return obj.cooperativa;
+        if (obj.datos && obj.datos.cooperativa) return obj.datos.cooperativa;
+        // If object itself looks like a cooperativa
+        if (
+          "codigo" in obj ||
+          "code" in obj ||
+          "nombre" in obj ||
+          "name" in obj
+        )
+          return obj;
+        // search first-level properties for a cooperativa-like object
+        for (const k of Object.keys(obj)) {
+          const v = obj[k];
+          if (v && typeof v === "object") {
+            if ("codigo" in v || "code" in v || "nombre" in v || "name" in v)
+              return v;
+          }
+        }
+        return null;
       }
 
-      // fallback to the lightweight cooperativa stored after auth
-      const raw = localStorage.getItem("cooperativa");
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      const norm = normalizeCooperativa(parsed);
-      setCooperativaSeleccionada(norm);
+      if (rawForm) {
+        const parsedForm = JSON.parse(rawForm);
+        const coopFromForm =
+          findPossibleCooperativa(parsedForm) ?? parsedForm?.datos ?? null;
+        // If parsedForm provides datos but no cooperativa fields, try to merge with local 'cooperativa'
+        if (
+          coopFromForm &&
+          (coopFromForm.codigo ||
+            coopFromForm.code ||
+            coopFromForm.nombre ||
+            coopFromForm.name)
+        ) {
+          const normFromForm = normalizeCooperativa(coopFromForm);
+          setCooperativaSeleccionada(normFromForm);
+          return;
+        }
+
+        // parsedForm has datos but lacks cooperative identification; try to take lightweight coop saved at auth
+        const rawCoopFallback = localStorage.getItem("cooperativa");
+        if (rawCoopFallback) {
+          try {
+            const parsedLocalCoop = JSON.parse(rawCoopFallback);
+            const normLocal = normalizeCooperativa(parsedLocalCoop);
+            // merge: local coop provides code/name, datos may still provide other metadata
+            const merged = { ...normLocal, ...(coopFromForm || {}) } as any;
+            setCooperativaSeleccionada(normalizeCooperativa(merged));
+            return;
+          } catch (err) {}
+        }
+
+        // as a last resort, try to use coopFromForm directly
+        if (coopFromForm) {
+          setCooperativaSeleccionada(normalizeCooperativa(coopFromForm));
+          return;
+        }
+      }
+
+      if (rawCoop) {
+        const parsed = JSON.parse(rawCoop);
+        const norm = normalizeCooperativa(parsed);
+        setCooperativaSeleccionada(norm);
+      }
     } catch (e) {
-      // si hay error al parsear, dejamos null
-      console.warn("No se pudo parsear cooperativa desde localStorage", e);
+      // ignore parse errors
     }
   }, []);
 
