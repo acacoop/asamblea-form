@@ -20,6 +20,19 @@ export default function FormGroup({ cooperativa }: Props) {
   const [presidente, setPresidente] = useState<string>("");
   const [contactoEmail, setContactoEmail] = useState<string>("");
 
+  // titulares & suplentes
+  const [titulares, setTitulares] = useState<
+    Array<{ id: string; nombre: string; documento?: string }>
+  >([]);
+  const [suplentesArr, setSuplentesArr] = useState<
+    Array<{ id: string; nombre: string; documento?: string }>
+  >([]);
+
+  // control showing an AddItem empty form when user clicks "Agregar"
+  const [showAddFor, setShowAddFor] = useState<null | "titular" | "suplente">(
+    null
+  );
+
   // Precarga cuando llega/actualiza la cooperativa (post autenticación)
   useEffect(() => {
     if (!cooperativa) return;
@@ -53,7 +66,101 @@ export default function FormGroup({ cooperativa }: Props) {
     const contacto =
       (cooperativa as any).contacto ?? (cooperativa as any).contact ?? null;
     setContactoEmail(contacto?.correoElectronico ?? contacto?.email ?? "");
+
+    // parse posibles titulares/suplentes desde cooperativa.datos o cooperativa
+    const datos = (cooperativa as any).datos ?? (cooperativa as any);
+
+    function parseArrayField(field: any) {
+      if (!field) return [];
+      if (Array.isArray(field)) return field;
+      try {
+        const parsed = JSON.parse(field);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // fallthrough
+      }
+      return [];
+    }
+
+    const rawTitulares = parseArrayField(
+      datos?.titulares ?? (cooperativa as any).titulares
+    );
+    const rawSuplentes = parseArrayField(
+      datos?.suplentes ?? (cooperativa as any).suplentes
+    );
+
+    const normalize = (arr: any[]) =>
+      arr.map((it) => ({
+        id:
+          it.id ??
+          it.ID ??
+          it.documento ??
+          Math.random().toString(36).slice(2, 10),
+        nombre: it.nombre ?? it.name ?? it.fullName ?? it.nombreCompleto ?? "",
+        documento:
+          it.documento ?? it.document ?? it.documentoIdentidad ?? undefined,
+      }));
+
+    setTitulares(normalize(rawTitulares));
+    setSuplentesArr(normalize(rawSuplentes));
   }, [cooperativa]);
+  function persistLists(
+    updatedTitulares?: typeof titulares,
+    updatedSuplentes?: typeof suplentesArr
+  ) {
+    try {
+      const raw = localStorage.getItem("formExistingData");
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed.datos = parsed.datos ?? {};
+      if (updatedTitulares) parsed.datos.titulares = updatedTitulares;
+      if (updatedSuplentes) parsed.datos.suplentes = updatedSuplentes;
+      localStorage.setItem("formExistingData", JSON.stringify(parsed));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function handleAddItemTo(
+    kind: "titular" | "suplente",
+    item: { id: string; nombre: string; documento?: string }
+  ) {
+    if (kind === "titular") {
+      const next = [...titulares, item];
+      setTitulares(next);
+      persistLists(next, undefined);
+    } else {
+      const next = [...suplentesArr, item];
+      setSuplentesArr(next);
+      persistLists(undefined, next);
+    }
+  }
+
+  function handleRemoveItemFrom(kind: "titular" | "suplente", id: string) {
+    if (kind === "titular") {
+      const next = titulares.filter((t) => t.id !== id);
+      setTitulares(next);
+      persistLists(next, undefined);
+    } else {
+      const next = suplentesArr.filter((s) => s.id !== id);
+      setSuplentesArr(next);
+      persistLists(undefined, next);
+    }
+  }
+
+  function handleUpdateItemIn(
+    kind: "titular" | "suplente",
+    item: { id: string; nombre: string; documento?: string }
+  ) {
+    if (kind === "titular") {
+      const next = titulares.map((t) => (t.id === item.id ? item : t));
+      setTitulares(next);
+      persistLists(next, undefined);
+    } else {
+      const next = suplentesArr.map((s) => (s.id === item.id ? item : s));
+      setSuplentesArr(next);
+      persistLists(undefined, next);
+    }
+  }
 
   return (
     <div className="form-group-container">
@@ -64,7 +171,7 @@ export default function FormGroup({ cooperativa }: Props) {
           label="Cooperativa"
           name="cooperativa"
           value={coopNombre}
-          readOnly // <- solo visual
+          readOnly
         />
         <Input label="Código" name="codigo" value={codigo} readOnly />
         <Input label="CAR" name="car" value={carTexto} readOnly />
@@ -118,17 +225,69 @@ export default function FormGroup({ cooperativa }: Props) {
 
       <div className="form-group">
         <h2 className="title-form-group">Titulares (máximo 2)</h2>
-        <AddItem />
+        {titulares.length === 0 && (
+          <p className="empty">No hay titulares cargados.</p>
+        )}
+        {titulares.map((t) => (
+          <AddItem
+            key={t.id}
+            initial={t}
+            onEdit={(item) => handleUpdateItemIn("titular", item)}
+            onRemove={(id) => handleRemoveItemFrom("titular", id)}
+          />
+        ))}
+
+        {showAddFor === "titular" && titulares.length < 2 && (
+          <div className="add-new-item">
+            <AddItem
+              onAdd={(item) => {
+                handleAddItemTo("titular", item);
+                setShowAddFor(null);
+              }}
+              onClose={() => setShowAddFor(null)}
+            />
+          </div>
+        )}
+
         <div className="button-add-item-container">
-          <Button label="Agregar Suplente" />
+          <Button
+            label="Agregar Titular"
+            onClick={() => setShowAddFor("titular")}
+          />
         </div>
       </div>
 
       <div className="form-group">
         <h2 className="title-form-group">Suplentes (máximo 2)</h2>
-        <AddItem />
+        {suplentesArr.length === 0 && (
+          <p className="empty">No hay suplentes cargados.</p>
+        )}
+        {suplentesArr.map((s) => (
+          <AddItem
+            key={s.id}
+            initial={s}
+            onEdit={(item) => handleUpdateItemIn("suplente", item)}
+            onRemove={(id) => handleRemoveItemFrom("suplente", id)}
+          />
+        ))}
+
+        {showAddFor === "suplente" && suplentesArr.length < 2 && (
+          <div className="add-new-item">
+            <AddItem
+              onAdd={(item) => {
+                handleAddItemTo("suplente", item);
+                setShowAddFor(null);
+              }}
+              onClose={() => setShowAddFor(null)}
+            />
+          </div>
+        )}
+
         <div className="button-add-item-container">
-          <Button label="Agregar Suplente" />
+          <Button
+            label="Agregar Suplente"
+            onClick={() => setShowAddFor("suplente")}
+          />
         </div>
       </div>
     </div>
