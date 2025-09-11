@@ -1,0 +1,27 @@
+/* Variables CSS - Colores ACA */
+:root {
+  --aca-blue: #282d87;
+  --aca-orange: #ff9100;
+  --aca-blue-light: #3a4199;
+  --aca-blue-dark: #1f2366;
+  --aca-orange-light: #ffb366;
+  --aca-orange-dark: #e67e00;
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --medium-gray: #e9ecef;
+  --dark-gray: #333333;
+  --text-gray: #555555;
+  --border-gray: #e0e0e0;
+  --success-green: #28a745;
+  --error-red: #dc3545;
+  --warning-yellow: #ffc107;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Basier Circle", "Neue Haas Grotesk Pro", "Heebo", "Arial",
+    "Helvetica", sans-serif;
+  line-height: 1.6;
+}

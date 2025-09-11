@@ -1,0 +1,16 @@
+.button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background-color: var(--aca-orange);
+  color: white;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: 150ms ease-in-out;
+}
+
+.button:hover {
+  background-color: var(--aca-orange-dark);
+  translate: 0 -2px;
+}

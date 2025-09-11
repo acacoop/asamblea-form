@@ -1,0 +1,30 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--light-gray);
+  padding: 40px 20px;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url(https://www.expoagro.com.ar/wp-content/uploads/Lote-de-trigo-scaled.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 20px 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--medium-gray);
+  border-radius: 20px;
+}
+
+@media (min-width: 1000px) {
+  .form-container {
+    width: 800px;
+  }
+}

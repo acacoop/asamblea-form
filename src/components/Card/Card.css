@@ -1,0 +1,22 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  max-width: 600px;
+  padding: 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--light-gray);
+  border-left: 4px solid var(--aca-blue);
+}
+
+.title-card {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: var(--aca-blue);
+}
+.description-card {
+  font-size: 16px;
+  color: var(--dark-gray);
+  margin-bottom: 15px;
+}

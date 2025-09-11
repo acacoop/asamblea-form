@@ -1,0 +1,18 @@
+.form-group-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 15px 34px;
+  gap: 25px;
+}
+.form-group {
+  width: 100%;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  gap: 20px;
+  border: 1px solid var(--border-gray);
+  border-left: 4px solid var(--aca-blue);
+}
