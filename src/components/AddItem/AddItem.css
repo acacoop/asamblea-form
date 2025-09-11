@@ -1,0 +1,30 @@
+.add-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+  gap: 30px;
+  border-radius: 10px;
+  border: 1px solid var(--border-gray);
+}
+
+.add-item-fields {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.add-item-button {
+  background-color: var(--error-red);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 20px;
+}

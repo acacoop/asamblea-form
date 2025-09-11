@@ -102,7 +102,7 @@ export default function Form() {
   return (
     <div className="form">
       <div className="form-container">
-        <HeaderForm titleForm="Formulario" showButtonBack={true} />
+        <HeaderForm titleForm="Registro de Votación" showButtonBack={true} />
         <BodyForm
           introText="Complete el siguiente formulario con sus datos personales. Los campos marcados con asterisco (*) son obligatorios."
           showCards={false}

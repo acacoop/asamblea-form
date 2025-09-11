@@ -1,7 +1,9 @@
 // components/FormGroup/FormGroup.tsx
 import "./FormGroup.css";
 import Input from "../Input/Input";
+import AddItem from "../AddItem/AddItem";
 import { useEffect, useState } from "react";
+import Button from "../Button/Button";
 import type { Cooperativa } from "../../types/types";
 
 type Props = {
@@ -115,7 +117,19 @@ export default function FormGroup({ cooperativa }: Props) {
       </div>
 
       <div className="form-group">
-        <h2 className="title-form-group">Titulares</h2>
+        <h2 className="title-form-group">Titulares (máximo 2)</h2>
+        <AddItem />
+        <div className="button-add-item-container">
+          <Button label="Agregar Suplente" />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <h2 className="title-form-group">Suplentes (máximo 2)</h2>
+        <AddItem />
+        <div className="button-add-item-container">
+          <Button label="Agregar Suplente" />
+        </div>
       </div>
     </div>
   );
