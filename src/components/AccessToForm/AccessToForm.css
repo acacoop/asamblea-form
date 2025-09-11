@@ -1,0 +1,55 @@
+.access-to-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 26px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: var(--light-gray);
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+}
+
+.title-access {
+  color: var(--aca-blue);
+}
+
+.required {
+  color: var(--aca-orange);
+}
+
+.access-form-container {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.input-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+}
+
+.access-button {
+  padding: 10px 20px;
+  background-color: var(--aca-blue);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+}
+.access-button:hover {
+  background-color: var(--aca-orange);
+}
+
+@media (min-width: 600px) {
+  .access-to-form {
+    min-width: 600px;
+  }
+}

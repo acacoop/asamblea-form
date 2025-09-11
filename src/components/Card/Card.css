@@ -3,6 +3,7 @@
   flex-direction: column;
   border: 1px solid #ccc;
   border-radius: 10px;
+  min-width: 300px;
   max-width: 600px;
   padding: 30px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -19,4 +20,10 @@
   font-size: 16px;
   color: var(--dark-gray);
   margin-bottom: 15px;
+}
+
+@media screen and (min-width: 768px) {
+  .card {
+    min-width: 600px;
+  }
 }

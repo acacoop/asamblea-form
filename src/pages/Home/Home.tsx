@@ -7,12 +7,16 @@ export default function Home() {
   return (
     <div className="home">
       <div className="form-container">
-        <HeaderForm titleForm="Título Formulario" showButtonBack={false} />
+        <HeaderForm
+          titleForm="Asamblea General Ordinaria 2025"
+          showButtonBack={false}
+        />
         <BodyForm
-          introText="lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa eveniet perferendis dolorem earum, voluptate ad nihil aliquid! Aspernatur beatae iure magni est tempore exercitationem, voluptates id earum! Quae, optio sed?"
+          introText=""
           showCards={true}
-          showButton={true}
+          showButton={false}
           buttonLabel="Ir al formulario"
+          showAccessForm={true}
         />
         <Footer />
       </div>
