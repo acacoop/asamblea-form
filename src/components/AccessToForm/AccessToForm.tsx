@@ -2,17 +2,21 @@ import "./AccessToForm.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authCooperativa, consultarDatos } from "../../services/services";
+import NotificationToast from "../NotificationToast/NotificationToast";
 
 export default function AccessToForm() {
   const [cooperativeId, setCooperativeId] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
@@ -28,12 +32,29 @@ export default function AccessToForm() {
           localStorage.setItem("formExistingData", JSON.stringify(datos));
         }
 
-        navigate("/form");
+        // show success toast
+        setToastType("success");
+        setToastMessage("Verificación exitosa");
+        setToastOpen(true);
+
+        // small delay to show toast, then navigate
+        setTimeout(() => navigate("/form"), 600);
       } else {
-        setError("Credenciales incorrectas.");
+        setToastType("error");
+        setToastMessage("Credenciales incorrectas.");
+        setToastOpen(true);
       }
     } catch (err: any) {
-      setError(err?.message || "Error en autenticación");
+      const msg = err?.message || "Error en autenticación";
+      // si la respuesta trae status 401 mostramos mensaje concreto
+      if ((err as any)?.status === 401) {
+        setToastType("error");
+        setToastMessage("Ingrese una cooperativa válida");
+      } else {
+        setToastType("error");
+        setToastMessage(msg);
+      }
+      setToastOpen(true);
     } finally {
       setLoading(false);
     }
@@ -75,11 +96,16 @@ export default function AccessToForm() {
         </div>
       </div>
 
-      {error && <div className="access-error">{error}</div>}
-
       <button className="access-button" type="submit" disabled={loading}>
         {loading ? "Verificando..." : "Acceder al formulario"}
       </button>
+      <NotificationToast
+        message={toastMessage}
+        type={toastType}
+        isOpen={toastOpen}
+        onClose={() => setToastOpen(false)}
+        duration={4000}
+      />
     </form>
   );
 }

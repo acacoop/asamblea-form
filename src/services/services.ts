@@ -19,7 +19,9 @@ async function request<T>(
   });
 
   if (!resp.ok) {
-    throw new Error(`Error HTTP ${resp.status}: ${resp.statusText}`);
+    const err = new Error(`Error HTTP ${resp.status}: ${resp.statusText}`);
+    (err as any).status = resp.status;
+    throw err;
   }
 
   const text = await resp.text();
@@ -60,23 +62,7 @@ export async function authCooperativa(
 /**
  * Consulta datos existentes de una cooperativa
  */
-export async function consultarDatos(codigo_cooperativa: string) {
-  if (!CONSULTAR_ENDPOINT) return null;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-
-  try {
-    const data = await request<any>(
-      CONSULTAR_ENDPOINT,
-      { codigo_cooperativa },
-      controller.signal
-    );
-    return data;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
+// (Eliminada implementación duplicada)
 
 /**
  * Envía los datos del formulario
@@ -87,6 +73,26 @@ export async function guardarFormulario(payload: any) {
 
   try {
     const data = await request<any>(API_ENDPOINT, payload, controller.signal);
+    return data;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+import type { ConsultaDatosResponse } from "../types/types";
+
+export async function consultarDatos(codigo_cooperativa: string) {
+  if (!CONSULTAR_ENDPOINT) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+  try {
+    const data = await request<ConsultaDatosResponse>(
+      CONSULTAR_ENDPOINT,
+      { codigo_cooperativa }, // <- tal cual especificación
+      controller.signal
+    );
     return data;
   } finally {
     clearTimeout(timeoutId);

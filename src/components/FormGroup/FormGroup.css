@@ -16,3 +16,7 @@
   border: 1px solid var(--border-gray);
   border-left: 4px solid var(--aca-blue);
 }
+
+.title-form-group {
+  color: var(--aca-blue);
+}

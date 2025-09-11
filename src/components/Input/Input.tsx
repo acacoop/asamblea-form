@@ -1,3 +1,4 @@
+// components/Input/Input.tsx
 import { useEffect, useState } from "react";
 import "./Input.css";
 
@@ -14,6 +15,7 @@ interface InputProps {
   options?: Option[]; // for checkbox, radio, search
   placeholder?: string;
   required?: boolean;
+  readOnly?: boolean; // <- NUEVO
   onChange?: (value: any) => void;
 }
 
@@ -26,9 +28,9 @@ export default function Input({
   options = [],
   placeholder,
   required = false,
+  readOnly = false, // <- NUEVO
   onChange,
 }: InputProps) {
-  // Local state when uncontrolled
   const [textValue, setTextValue] = useState<string>((value as string) || "");
   const [numberValue, setNumberValue] = useState<number | "">(
     typeof value === "number" ? (value as number) : ""
@@ -39,9 +41,9 @@ export default function Input({
   const [selectedRadio, setSelectedRadio] = useState<string>(
     typeof value === "string" ? (value as string) : ""
   );
-  // search dropdown
   const [searchInput, setSearchInput] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
+
   useEffect(() => {
     if (typeof value === "string") setTextValue(value as string);
     if (typeof value === "number") setNumberValue(value as number);
@@ -51,6 +53,7 @@ export default function Input({
   function emitChange(v: any) {
     if (onChange) onChange(v);
   }
+
   if (type === "checkbox") {
     return (
       <div className="input-container">
@@ -66,7 +69,9 @@ export default function Input({
                 type="checkbox"
                 name={name}
                 checked={checkedValues.includes(opt.value)}
+                disabled={readOnly} // <- respeta readOnly como disabled
                 onChange={(e) => {
+                  if (readOnly) return;
                   const next = e.target.checked
                     ? [...checkedValues, opt.value]
                     : checkedValues.filter((v) => v !== opt.value);
@@ -81,6 +86,7 @@ export default function Input({
       </div>
     );
   }
+
   if (type === "radio") {
     return (
       <div className="input-container">
@@ -96,7 +102,9 @@ export default function Input({
                 type="radio"
                 name={name}
                 checked={selectedRadio === opt.value}
+                disabled={readOnly}
                 onChange={() => {
+                  if (readOnly) return;
                   setSelectedRadio(opt.value);
                   emitChange(opt.value);
                 }}
@@ -126,9 +134,11 @@ export default function Input({
           className="input-field"
           placeholder={placeholder}
           value={searchInput}
-          onFocus={() => setShowDropdown(true)}
+          readOnly={readOnly}
+          onFocus={() => !readOnly && setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
           onChange={(e) => {
+            if (readOnly) return;
             setSearchInput(e.target.value);
             emitChange(e.target.value);
           }}
@@ -153,6 +163,7 @@ export default function Input({
       </div>
     );
   }
+
   // default: text / email / number
   return (
     <div className="input-container">
@@ -168,7 +179,9 @@ export default function Input({
         type={type === "number" ? "number" : type}
         placeholder={placeholder}
         value={type === "number" ? (numberValue as any) : textValue}
+        readOnly={readOnly} // <- NUEVO
         onChange={(e) => {
+          if (readOnly) return; // <- NUEVO
           if (type === "number") {
             const v = e.target.value === "" ? "" : Number(e.target.value);
             setNumberValue(v);
