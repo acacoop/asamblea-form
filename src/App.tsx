@@ -5,7 +5,7 @@ import Form from "./pages/Form/Form";
 
 function App() {
   return (
-    <Router basename="/base-form">
+    <Router basename="/asamblea-form">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/form" element={<Form />} />
