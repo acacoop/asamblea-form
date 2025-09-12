@@ -218,14 +218,14 @@ export default function FormGroup({ cooperativa }: Props) {
       <div className="form-group">
         <h2 className="title-form-group">Autoridades de la Cooperativa</h2>
         <Input
-          label="Nombre del Secretario:"
+          label="Nombre completo del Secretario:"
           name="secretario"
           value={secretario}
           onChange={(v) => setSecretario(String(v))}
         />
 
         <Input
-          label="Nombre del Presidente:"
+          label="Nombre completo del Presidente:"
           name="presidente"
           value={presidente}
           onChange={(v) => setPresidente(String(v))}
