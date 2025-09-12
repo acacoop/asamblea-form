@@ -88,7 +88,7 @@ export default function AccessToForm() {
             type="text"
             id="verificationCode"
             name="verificationCode"
-            placeholder="Ej: ABCD1234"
+            placeholder="Ej: AC123"
             value={verificationCode}
             onChange={(e) => setVerificationCode(e.target.value)}
             required
