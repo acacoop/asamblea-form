@@ -144,10 +144,11 @@ export default function CartaPoder() {
         onClose={() => setToastOpen(false)}
       />
       {cartas.map((c) => (
-        <div key={c.id} className="carta-row">
+        <div key={c.id} className="add-item">
           <div className="campo">
-            <label>Poderdante (quien delega):</label>
+            <label className="input-label">Poderdante (quien delega):</label>
             <select
+              className="input-select"
               value={c.poderanteId ?? ""}
               onChange={(e) =>
                 updateCarta(c.id, { poderanteId: e.target.value })
@@ -173,8 +174,9 @@ export default function CartaPoder() {
             </select>
           </div>
           <div className="campo">
-            <label>Apoderado (quien recibe):</label>
+            <label className="input-label">Apoderado (quien recibe):</label>
             <select
+              className="input-select"
               value={c.apoderadoId ?? ""}
               onChange={(e) =>
                 updateCarta(c.id, { apoderadoId: e.target.value })
@@ -183,7 +185,6 @@ export default function CartaPoder() {
               <option value="">Seleccione un suplente</option>
               {suplentes.map((s) => {
                 const count = apoderadoCounts[s.id] || 0;
-                // allow keeping the current selection even if count==2
                 const isAlreadyAssignedToThisCarta = s.id === c.apoderadoId;
                 const isSameAsPoderante = s.id === c.poderanteId;
                 const isDisabled =
@@ -211,6 +212,7 @@ export default function CartaPoder() {
           </div>
           <div className="actions">
             <Button
+              className="add-item-button"
               label="Eliminar"
               color="--error-red"
               onClick={() => removeCarta(c.id)}

@@ -1,4 +1,3 @@
-/* Styles adapted from AddItem.css to match layout */
 .carta-poder {
   display: flex;
   flex-direction: column;
@@ -17,30 +16,29 @@
   display: flex;
   gap: 16px;
   align-items: center;
-  padding: 12px;
+  padding: 20px;
   border-radius: 8px;
   border: 1px solid var(--border-gray);
   margin-bottom: 12px;
-  background: var(--light-gray);
+  width: 100%;
 }
 
-.carta-row .campo {
+.add-item .campo {
   flex: 1;
 }
 
-.carta-row label {
+.input-select {
+  padding: 10px 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border-gray);
+  background: white;
+}
+
+.carta-row .input-label {
   display: block;
   font-size: 13px;
   color: var(--text-gray);
   margin-bottom: 6px;
-}
-
-.carta-row select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-gray);
-  background: white;
 }
 
 .carta-row .actions {
