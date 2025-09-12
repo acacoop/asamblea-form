@@ -22,7 +22,9 @@ export default function CartaPoder() {
   const [cartas, setCartas] = useState<Carta[]>([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error" | "info" | "warning">("info");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
 
   useEffect(() => {
     const load = () => {
@@ -111,7 +113,9 @@ export default function CartaPoder() {
       }
 
       if (count >= 2) {
-        setToastMessage("Este apoderado ya tiene 2 cartas, no puede recibir más.");
+        setToastMessage(
+          "Este apoderado ya tiene 2 cartas, no puede recibir más."
+        );
         setToastType("error");
         setToastOpen(true);
         return;
@@ -123,15 +127,12 @@ export default function CartaPoder() {
   }
 
   // compute how many cartas tiene cada apoderado
-  const apoderadoCounts: Record<string, number> = cartas.reduce(
-    (acc, cur) => {
-      if (cur.apoderadoId) {
-        acc[cur.apoderadoId] = (acc[cur.apoderadoId] || 0) + 1;
-      }
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const apoderadoCounts: Record<string, number> = cartas.reduce((acc, cur) => {
+    if (cur.apoderadoId) {
+      acc[cur.apoderadoId] = (acc[cur.apoderadoId] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
   const apoderadosSet = new Set(Object.keys(apoderadoCounts));
 
   return (
@@ -159,7 +160,12 @@ export default function CartaPoder() {
                   ? "No puede ser poderdante porque está designado como apoderado"
                   : undefined;
                 return (
-                  <option key={t.id} value={t.id} disabled={isDisabled} title={title}>
+                  <option
+                    key={t.id}
+                    value={t.id}
+                    disabled={isDisabled}
+                    title={title}
+                  >
                     {t.nombre} {t.documento ? `(${t.documento})` : null}
                   </option>
                 );
@@ -180,14 +186,23 @@ export default function CartaPoder() {
                 // allow keeping the current selection even if count==2
                 const isAlreadyAssignedToThisCarta = s.id === c.apoderadoId;
                 const isSameAsPoderante = s.id === c.poderanteId;
-                const isDisabled = (count >= 2 && !isAlreadyAssignedToThisCarta) || isSameAsPoderante;
+                const isDisabled =
+                  (count >= 2 && !isAlreadyAssignedToThisCarta) ||
+                  isSameAsPoderante;
                 let title: string | undefined;
-                if (isSameAsPoderante) title = "No puede ser apoderado y poderdante al mismo tiempo";
+                if (isSameAsPoderante)
+                  title = "No puede ser apoderado y poderdante al mismo tiempo";
                 else if (count >= 2 && !isAlreadyAssignedToThisCarta)
-                  title = "Este apoderado ya tiene 2 cartas, no puede recibir más";
+                  title =
+                    "Este apoderado ya tiene 2 cartas, no puede recibir más";
 
                 return (
-                  <option key={s.id} value={s.id} disabled={isDisabled} title={title}>
+                  <option
+                    key={s.id}
+                    value={s.id}
+                    disabled={isDisabled}
+                    title={title}
+                  >
                     {s.nombre} {s.documento ? `(${s.documento})` : null}
                   </option>
                 );
