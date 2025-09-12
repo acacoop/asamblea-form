@@ -29,3 +29,23 @@
   font-weight: bold;
   margin-top: 20px;
 }
+
+/* hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.add-item-button.save {
+  background-color: var(--aca-blue-light);
+}
+
+.add-item-button.cancel {
+  background-color: var(--medium-gray);
+  color: #333;
+}

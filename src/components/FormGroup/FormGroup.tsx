@@ -4,6 +4,7 @@ import Input from "../Input/Input";
 import AddItem from "../AddItem/AddItem";
 import { useEffect, useState } from "react";
 import Button from "../Button/Button";
+import CartaPoder from "../CartaPoder/CartaPoder";
 import type { Cooperativa } from "../../types/types";
 
 type Props = {
@@ -32,6 +33,7 @@ export default function FormGroup({ cooperativa }: Props) {
   const [showAddFor, setShowAddFor] = useState<null | "titular" | "suplente">(
     null
   );
+  const [showCarta, setShowCarta] = useState(false);
 
   // Precarga cuando llega/actualiza la cooperativa (post autenticación)
   useEffect(() => {
@@ -113,8 +115,18 @@ export default function FormGroup({ cooperativa }: Props) {
       const parsed = raw ? JSON.parse(raw) : {};
       parsed.datos = parsed.datos ?? {};
       if (updatedTitulares) parsed.datos.titulares = updatedTitulares;
+      if (updatedTitulares) parsed.titulares = updatedTitulares;
       if (updatedSuplentes) parsed.datos.suplentes = updatedSuplentes;
+      if (updatedSuplentes) parsed.suplentes = updatedSuplentes;
       localStorage.setItem("formExistingData", JSON.stringify(parsed));
+      // notify other components in the same window
+      try {
+        window.dispatchEvent(
+          new CustomEvent("formExistingDataChanged", { detail: parsed })
+        );
+      } catch (e) {
+        // ignore
+      }
     } catch (e) {
       // ignore
     }
@@ -161,6 +173,15 @@ export default function FormGroup({ cooperativa }: Props) {
       persistLists(undefined, next);
     }
   }
+
+  const canAddTitular = titulares.every(
+    (t) =>
+      String(t.nombre).trim() !== "" && String(t.documento ?? "").trim() !== ""
+  );
+  const canAddSuplente = suplentesArr.every(
+    (s) =>
+      String(s.nombre).trim() !== "" && String(s.documento ?? "").trim() !== ""
+  );
 
   return (
     <div className="form-group-container">
@@ -224,8 +245,8 @@ export default function FormGroup({ cooperativa }: Props) {
       </div>
 
       <div className="form-group">
-        <h2 className="title-form-group">Titulares (máximo 2)</h2>
-        {titulares.length === 0 && (
+        <h2 className="title-form-group">Titulares (máximo 6)</h2>
+        {titulares.length === 0 && showAddFor !== "titular" && (
           <p className="empty">No hay titulares cargados.</p>
         )}
         {titulares.map((t) => (
@@ -237,7 +258,7 @@ export default function FormGroup({ cooperativa }: Props) {
           />
         ))}
 
-        {showAddFor === "titular" && titulares.length < 2 && (
+        {showAddFor === "titular" && titulares.length < 6 && (
           <div className="add-new-item">
             <AddItem
               onAdd={(item) => {
@@ -253,13 +274,15 @@ export default function FormGroup({ cooperativa }: Props) {
           <Button
             label="Agregar Titular"
             onClick={() => setShowAddFor("titular")}
+            color="--aca-blue-light"
+            disabled={!canAddTitular || titulares.length >= 6}
           />
         </div>
       </div>
 
       <div className="form-group">
-        <h2 className="title-form-group">Suplentes (máximo 2)</h2>
-        {suplentesArr.length === 0 && (
+        <h2 className="title-form-group">Suplentes (máximo 6)</h2>
+        {suplentesArr.length === 0 && showAddFor !== "suplente" && (
           <p className="empty">No hay suplentes cargados.</p>
         )}
         {suplentesArr.map((s) => (
@@ -271,7 +294,7 @@ export default function FormGroup({ cooperativa }: Props) {
           />
         ))}
 
-        {showAddFor === "suplente" && suplentesArr.length < 2 && (
+        {showAddFor === "suplente" && suplentesArr.length < 6 && (
           <div className="add-new-item">
             <AddItem
               onAdd={(item) => {
@@ -286,9 +309,25 @@ export default function FormGroup({ cooperativa }: Props) {
         <div className="button-add-item-container">
           <Button
             label="Agregar Suplente"
+            color="--aca-blue-light"
             onClick={() => setShowAddFor("suplente")}
+            // @ts-ignore
+            disabled={!canAddSuplente || suplentesArr.length >= 6}
           />
         </div>
+      </div>
+      <div className="form-group">
+        <h2 className="title-form-group">Cartas Poder</h2>
+        <CartaPoder />
+
+        {showCarta && (
+          <div className="carta-modal">
+            <CartaPoder />
+            <div style={{ marginTop: 8 }}>
+              <Button label="Cerrar" onClick={() => setShowCarta(false)} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,69 @@
+/* Styles adapted from AddItem.css to match layout */
+.carta-poder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.carta-poder h3 {
+  margin-bottom: 12px;
+  color: var(--aca-blue);
+}
+
+.carta-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-gray);
+  margin-bottom: 12px;
+  background: var(--light-gray);
+}
+
+.carta-row .campo {
+  flex: 1;
+}
+
+.carta-row label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-bottom: 6px;
+}
+
+.carta-row select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-gray);
+  background: white;
+}
+
+.carta-row .actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-carta-button {
+  background: var(--aca-blue-light);
+  color: white;
+  padding: 12px 26px;
+  border-radius: 28px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.carta-row .remove {
+  background: var(--error-red);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+}

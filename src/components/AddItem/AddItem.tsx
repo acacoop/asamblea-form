@@ -12,13 +12,19 @@ type Props = {
 
 export default function AddItem({
   initial,
-
+  onAdd,
   onRemove,
   onClose,
   onEdit,
 }: Props) {
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
   const [documento, setDocumento] = useState(initial?.documento ?? "");
+
+  function handleAdd() {
+    const id = initial?.id ?? Math.random().toString(36).slice(2, 10);
+    if (onAdd) onAdd({ id, nombre, documento });
+    if (onClose) onClose();
+  }
 
   function handleRemove() {
     if (!initial?.id) return;
@@ -47,7 +53,7 @@ export default function AddItem({
         <label className="input-label">Documento</label>
         <input
           className="input-field"
-          type="text"
+          type="number"
           value={documento}
           onChange={(e) => setDocumento(e.target.value)}
           onBlur={handleBlurEdit}
@@ -65,15 +71,16 @@ export default function AddItem({
           </button>
         ) : (
           <>
-            {onClose && (
-              <button
-                className="add-item-button"
-                type="button"
-                onClick={onClose}
-              >
-                Cancelar
-              </button>
-            )}
+            <button
+              className="add-item-button save"
+              type="button"
+              onClick={handleAdd}
+              disabled={
+                String(nombre).trim() === "" || String(documento).trim() === ""
+              }
+            >
+              Guardar
+            </button>
           </>
         )}
       </div>

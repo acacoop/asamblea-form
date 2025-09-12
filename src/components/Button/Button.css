@@ -14,3 +14,9 @@
   background-color: var(--aca-orange-dark);
   translate: 0 -2px;
 }
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
