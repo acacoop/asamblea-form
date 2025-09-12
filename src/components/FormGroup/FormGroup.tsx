@@ -183,7 +183,6 @@ export default function FormGroup({ cooperativa }: Props) {
       String(s.nombre).trim() !== "" && String(s.documento ?? "").trim() !== ""
   );
 
-  // máximo dinámico: si `votos` viene como número, usarlo; si no, fallback a 6
   const maxPeople =
     typeof votos === "number" && !Number.isNaN(votos) ? Math.max(0, votos) : 6;
 
@@ -193,15 +192,15 @@ export default function FormGroup({ cooperativa }: Props) {
         <h2 className="title-form-group">Información de la Cooperativa</h2>
 
         <Input
-          label="Cooperativa"
+          label="Cooperativa:"
           name="cooperativa"
           value={coopNombre}
           readOnly
         />
-        <Input label="Código" name="codigo" value={codigo} readOnly />
-        <Input label="CAR" name="car" value={carTexto} readOnly />
+        <Input label="Código:" name="codigo" value={codigo} readOnly />
+        <Input label="CAR:" name="car" value={carTexto} readOnly />
         <Input
-          label="Votos"
+          label="Votos:"
           name="votos"
           type="number"
           value={votos}
@@ -225,12 +224,14 @@ export default function FormGroup({ cooperativa }: Props) {
           label="Nombre completo del Secretario:"
           name="secretario"
           value={secretario}
+          required={true}
           onChange={(v) => setSecretario(String(v))}
         />
 
         <Input
           label="Nombre completo del Presidente:"
           name="presidente"
+          required={true}
           value={presidente}
           onChange={(v) => setPresidente(String(v))}
         />
@@ -239,6 +240,7 @@ export default function FormGroup({ cooperativa }: Props) {
           label="Correo Electrónico de Contacto:"
           name="contacto_email"
           type="email"
+          required={true}
           value={contactoEmail}
           placeholder="ejemplo@correo.com"
           onChange={(v) => setContactoEmail(String(v))}

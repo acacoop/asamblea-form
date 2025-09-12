@@ -12,10 +12,10 @@ interface InputProps {
   label?: string;
   type?: InputType;
   value?: string | number | string[];
-  options?: Option[]; // for checkbox, radio, search
+  options?: Option[];
   placeholder?: string;
   required?: boolean;
-  readOnly?: boolean; // <- NUEVO
+  readOnly?: boolean;
   onChange?: (value: any) => void;
 }
 
@@ -28,7 +28,7 @@ export default function Input({
   options = [],
   placeholder,
   required = false,
-  readOnly = false, // <- NUEVO
+  readOnly = false,
   onChange,
 }: InputProps) {
   const [textValue, setTextValue] = useState<string>((value as string) || "");
@@ -69,7 +69,7 @@ export default function Input({
                 type="checkbox"
                 name={name}
                 checked={checkedValues.includes(opt.value)}
-                disabled={readOnly} // <- respeta readOnly como disabled
+                disabled={readOnly}
                 onChange={(e) => {
                   if (readOnly) return;
                   const next = e.target.checked
@@ -164,7 +164,6 @@ export default function Input({
     );
   }
 
-  // default: text / email / number
   return (
     <div className="input-container">
       {label && (
@@ -179,9 +178,9 @@ export default function Input({
         type={type === "number" ? "number" : type}
         placeholder={placeholder}
         value={type === "number" ? (numberValue as any) : textValue}
-        readOnly={readOnly} // <- NUEVO
+        readOnly={readOnly}
         onChange={(e) => {
-          if (readOnly) return; // <- NUEVO
+          if (readOnly) return;
           if (type === "number") {
             const v = e.target.value === "" ? "" : Number(e.target.value);
             setNumberValue(v);
