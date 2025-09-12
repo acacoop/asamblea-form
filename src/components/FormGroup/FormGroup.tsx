@@ -311,7 +311,6 @@ export default function FormGroup({ cooperativa }: Props) {
             label="Agregar Suplente"
             color="--aca-blue-light"
             onClick={() => setShowAddFor("suplente")}
-            // @ts-ignore
             disabled={!canAddSuplente || suplentesArr.length >= 6}
           />
         </div>
