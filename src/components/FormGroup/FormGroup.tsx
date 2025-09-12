@@ -183,6 +183,10 @@ export default function FormGroup({ cooperativa }: Props) {
       String(s.nombre).trim() !== "" && String(s.documento ?? "").trim() !== ""
   );
 
+  // máximo dinámico: si `votos` viene como número, usarlo; si no, fallback a 6
+  const maxPeople =
+    typeof votos === "number" && !Number.isNaN(votos) ? Math.max(0, votos) : 6;
+
   return (
     <div className="form-group-container">
       <div className="form-group">
@@ -245,7 +249,7 @@ export default function FormGroup({ cooperativa }: Props) {
       </div>
 
       <div className="form-group">
-        <h2 className="title-form-group">Titulares (máximo 6)</h2>
+        <h2 className="title-form-group">{`Titulares (máximo ${maxPeople})`}</h2>
         {titulares.length === 0 && showAddFor !== "titular" && (
           <p className="empty">No hay titulares cargados.</p>
         )}
@@ -258,7 +262,7 @@ export default function FormGroup({ cooperativa }: Props) {
           />
         ))}
 
-        {showAddFor === "titular" && titulares.length < 6 && (
+        {showAddFor === "titular" && titulares.length < maxPeople && (
           <div className="add-new-item">
             <AddItem
               onAdd={(item) => {
@@ -275,13 +279,13 @@ export default function FormGroup({ cooperativa }: Props) {
             label="Agregar Titular"
             onClick={() => setShowAddFor("titular")}
             color="--aca-blue-light"
-            disabled={!canAddTitular || titulares.length >= 6}
+            disabled={!canAddTitular || titulares.length >= maxPeople}
           />
         </div>
       </div>
 
       <div className="form-group">
-        <h2 className="title-form-group">Suplentes (máximo 6)</h2>
+        <h2 className="title-form-group">{`Suplentes (máximo ${maxPeople})`}</h2>
         {suplentesArr.length === 0 && showAddFor !== "suplente" && (
           <p className="empty">No hay suplentes cargados.</p>
         )}
@@ -294,7 +298,7 @@ export default function FormGroup({ cooperativa }: Props) {
           />
         ))}
 
-        {showAddFor === "suplente" && suplentesArr.length < 6 && (
+        {showAddFor === "suplente" && suplentesArr.length < maxPeople && (
           <div className="add-new-item">
             <AddItem
               onAdd={(item) => {
@@ -311,12 +315,15 @@ export default function FormGroup({ cooperativa }: Props) {
             label="Agregar Suplente"
             color="--aca-blue-light"
             onClick={() => setShowAddFor("suplente")}
-            disabled={!canAddSuplente || suplentesArr.length >= 6}
+            disabled={!canAddSuplente || suplentesArr.length >= maxPeople}
           />
         </div>
       </div>
       <div className="form-group">
         <h2 className="title-form-group">Cartas Poder</h2>
+        <p className="help-text">
+          Un apoderado puede recibir hasta 2 cartas de poder.
+        </p>
         <CartaPoder />
 
         {showCarta && (
