@@ -6,6 +6,8 @@ import FormGroup from "../../components/FormGroup/FormGroup";
 import { useEffect, useState } from "react";
 import type { Cooperativa } from "../../types/types";
 
+import { processFormSubmission, downloadGeneratedDocument, extractFormDataAsJSON } from "../../utils/formDataExtractor";
+
 function normalizeCooperativa(raw: any): Cooperativa {
   if (!raw) return { code: "" } as Cooperativa;
   const mapped: Cooperativa = {
@@ -19,6 +21,17 @@ function normalizeCooperativa(raw: any): Cooperativa {
   };
   return mapped;
 }
+
+const DocumentTestButtons = () => (
+  <div style={{margin: "20px", textAlign: "center"}}>
+    <button onClick={() => console.log(extractFormDataAsJSON())}>
+      Log JSON Data
+    </button>
+    <button onClick={() => downloadGeneratedDocument()}>
+      Download Document
+    </button>
+  </div>
+);
 
 export default function Form() {
   const [cooperativaSeleccionada, setCooperativaSeleccionada] =
@@ -110,6 +123,7 @@ export default function Form() {
           buttonLabel="Enviar formulario"
         >
           <FormGroup cooperativa={cooperativaSeleccionada} />
+          <DocumentTestButtons />
         </BodyForm>
         <Footer />
       </div>
