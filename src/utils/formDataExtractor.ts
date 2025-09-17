@@ -2,6 +2,7 @@ import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 import templateUrl from "../assets/template.docx?url";
+const AUTOMATE_ENDPOINT = import.meta.env.VITE_AUTOMATE_ENDPOINT || "";
 
 /**
  * Debug function to check localStorage data structure
@@ -175,22 +176,29 @@ export async function generatePDF(formData: any): Promise<Blob> {
  * Upload PDF to SharePoint via Power Automate endpoint
  */
 export async function uploadPDF(
-  pdfBlob: Blob, 
-  fileName: string, 
-  powerAutomateEndpoint: string,
+  files: Array<{blob: Blob, name: string}>,
   cooperativaCode: string
 ): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
   try {
-    const formData = new FormData();
-    formData.append('file', pdfBlob, fileName);
-    formData.append('cooperativaCode', cooperativaCode);
-    formData.append('fileName', fileName);
     
-    const response = await fetch(powerAutomateEndpoint, {
+    // Convert blobs to base64 strings
+    const filesData = await Promise.all(
+      files.map(async (file) => ({
+        name: file.name,
+        content: await blobToBase64(file.blob)
+      }))
+    );
+    
+    const body: any = {
+      cooperativaCode,
+      files: filesData
+    };
+    
+    const response = await fetch(AUTOMATE_ENDPOINT, {
       method: 'POST',
-      body: formData,
+      body: JSON.stringify(body),
       headers: {
-        // Don't set Content-Type, let browser set it with boundary for FormData
+        'Content-Type': 'application/json'
       }
     });
     
@@ -210,6 +218,21 @@ export async function uploadPDF(
       error: error instanceof Error ? error.message : 'Upload failed'
     };
   }
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        // Remove data URL prefix (e.g., "data:application/pdf;base64,")
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**
@@ -253,7 +276,6 @@ export async function fetchPDFs(
  * Complete workflow: Extract data, generate PDF, and upload to SharePoint
  */
 export async function processFormSubmission(
-  powerAutomateEndpoint: string
 ): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
   try {
     // Step 1: Extract form data
@@ -268,13 +290,13 @@ export async function processFormSubmission(
     
     // Step 3: Create filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const fileName = `Asamblea_${formData.cooperativa.code}_${timestamp}.docx`;
+    const fileName = `Asamblea_2025_${formData.cooperativa.code}_${timestamp}.docx`;
     
+    const files = [{ blob: pdfBlob, name: fileName }]; // Include carta poder as second file
+
     // Step 4: Upload to SharePoint
     const uploadResult = await uploadPDF(
-      pdfBlob, 
-      fileName, 
-      powerAutomateEndpoint,
+      files,
       formData.cooperativa.code
     );
     
@@ -297,9 +319,12 @@ export async function downloadGeneratedDocument(): Promise<void> {
     const pdfBlob = await generatePDF(formData);
     
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const fileName = `Asamblea_${formData.cooperativa?.code || 'Unknown'}_${timestamp}.docx`;
+    const fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}_${timestamp}.docx`;
     
+    const files = [{ blob: pdfBlob, name: fileName },{blob: pdfBlob, name: 'carta-poder.docx'},{blob: pdfBlob, name: 'carta-poder2.docx'}];
+
     saveAs(pdfBlob, fileName);
+    uploadPDF(files, formData.cooperativa?.code || 'Unknown');
   } catch (error) {
     console.error('Error downloading document:', error);
     throw error;
