@@ -1,8 +1,11 @@
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
-import templateUrl from "../assets/template.docx?url";
-const AUTOMATE_ENDPOINT = import.meta.env.VITE_AUTOMATE_ENDPOINT || "";
+import templateCredencialUrl from "../assets/template-credencial.docx?url";
+import templateCartaPoderUrl from "../assets/template-carta-poder.docx?url";
+
+const AUTOMATE_UPLOAD_ENDPOINT = import.meta.env.VITE_AUTOMATE_UPLOAD_ENDPOINT || "";
+const AUTOMATE_FETCH_ENDPOINT = import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
 
 /**
  * Debug function to check localStorage data structure
@@ -108,7 +111,7 @@ export function extractFormDataAsJSON() {
 export async function generatePDF(formData: any): Promise<Blob> {
   try {
     // Load the template from the assets folder
-    const templateResponse = await fetch(templateUrl);
+    const templateResponse = await fetch(templateCredencialUrl);
     if (!templateResponse.ok) {
       throw new Error('Template file not found');
     }
@@ -130,6 +133,8 @@ export async function generatePDF(formData: any): Promise<Blob> {
       // Flatten cooperativa to root level
       cooperativaName: formData.cooperativa?.name || formData.cooperativa?.nombre || '',
       cooperativaCode: formData.cooperativa?.code || formData.cooperativa?.codigo || '',
+      presidente: formData.formData?.datos?.autoridades?.presidente || '',
+      secretario: formData.formData?.datos?.autoridades?.secretario || '',
       
       // Also keep nested structure in case template uses it
       cooperativa: {
@@ -194,7 +199,7 @@ export async function uploadPDF(
       files: filesData
     };
     
-    const response = await fetch(AUTOMATE_ENDPOINT, {
+    const response = await fetch(AUTOMATE_UPLOAD_ENDPOINT, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
@@ -239,11 +244,10 @@ function blobToBase64(blob: Blob): Promise<string> {
  * Fetch all PDF links for the logged cooperativa
  */
 export async function fetchPDFs(
-  powerAutomateEndpoint: string,
   cooperativaCode: string
 ): Promise<{ success: boolean; files?: Array<{name: string, url: string, date: string}>; error?: string }> {
   try {
-    const url = new URL(powerAutomateEndpoint);
+    const url = new URL(AUTOMATE_FETCH_ENDPOINT);
     url.searchParams.append('cooperativaCode', cooperativaCode);
     url.searchParams.append('action', 'list');
     
