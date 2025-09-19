@@ -55,7 +55,6 @@ export default function Form() {
         if (!obj || typeof obj !== "object") return null;
         if (obj.cooperativa) return obj.cooperativa;
         if (obj.datos && obj.datos.cooperativa) return obj.datos.cooperativa;
-        // If object itself looks like a cooperativa
         if (
           "codigo" in obj ||
           "code" in obj ||
@@ -63,7 +62,7 @@ export default function Form() {
           "name" in obj
         )
           return obj;
-        // search first-level properties for a cooperativa-like object
+
         for (const k of Object.keys(obj)) {
           const v = obj[k];
           if (v && typeof v === "object") {
@@ -151,40 +150,45 @@ export default function Form() {
 
   return (
     <div className="form">
-      {showFileStatusBanner && (
-        <FileStatusBanner
-          cooperativa={cooperativaSeleccionada}
-          archivos={archivosExistentes || []}
-          onModify={() => setShowFileStatusBanner(false)}
-          onDownload={(archs) => {
-            archs.forEach((a, idx) => {
-              try {
-                // soportar a.url (directa) o a.base64 (data)
-                let linkHref: string | null = null;
-                let filename = a.nombre || a.name || `archivo_${idx + 1}`;
-                if (a.url) {
-                  linkHref = a.url;
-                } else if (a.base64) {
-                  const base = a.base64.startsWith("data:")
-                    ? a.base64
-                    : `data:application/octet-stream;base64,${a.base64}`;
-                  linkHref = base;
-                }
-                if (linkHref) {
-                  const link = document.createElement("a");
-                  link.href = linkHref;
-                  link.download = filename;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }
-              } catch (e) {
-                // continuar con el siguiente
+      <FileStatusBanner
+        open={showFileStatusBanner}
+        cooperativa={cooperativaSeleccionada}
+        archivos={archivosExistentes || []}
+        onModify={() => setShowFileStatusBanner(false)}
+        onDownload={(archs) => {
+          archs.forEach((a, idx) => {
+            try {
+              const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
+              const rawBase64: string | undefined = a.fileContent || a.base64;
+              if (!rawBase64) return;
+              // limpiar posibles saltos de línea / espacios
+              const cleaned = rawBase64.replace(/\s+/g, "");
+              // decodificar base64 a bytes
+              const byteChars = atob(cleaned);
+              const byteNumbers = new Array(byteChars.length);
+              for (let i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
               }
-            });
-          }}
-        />
-      )}
+              const byteArray = new Uint8Array(byteNumbers);
+              // intentar detectar tipo (suponemos PDF si nombre termina en .pdf)
+              const mime = filename.toLowerCase().endsWith('.pdf')
+                ? 'application/pdf'
+                : 'application/octet-stream';
+              const blob = new Blob([byteArray], { type: mime });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = filename;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              setTimeout(() => URL.revokeObjectURL(url), 4000);
+            } catch (e) {
+              // ignorar error individual y continuar con el siguiente
+            }
+          });
+        }}
+      />
       <div className="form-container">
         <HeaderForm titleForm="Registro de Votación" showButtonBack={true} />
         <BodyForm

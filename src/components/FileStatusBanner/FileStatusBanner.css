@@ -15,7 +15,63 @@
   box-sizing: border-box;
 }
 
-/* Caja del banner */
+/* Animaciones */
+@keyframes fadeScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes fadeScaleOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.file-status-banner-overlay.enter {
+  animation: fadeOverlayIn 0.35s ease forwards;
+}
+.file-status-banner-overlay.exit {
+  animation: fadeOverlayOut 0.35s ease forwards;
+}
+
+@keyframes fadeOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.file-status-banner.enter {
+  animation: fadeScaleIn 0.35s cubic-bezier(0.4, 0.8, 0.4, 1) forwards;
+}
+.file-status-banner.exit {
+  animation: fadeScaleOut 0.28s ease forwards;
+}
+
 .file-status-banner {
   display: flex;
   flex-direction: column;

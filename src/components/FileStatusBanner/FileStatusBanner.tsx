@@ -8,6 +8,8 @@ interface FileStatusBannerProps {
   archivos?: any[] | null;
   onModify?: () => void;
   onDownload?: (archivos: any[]) => void;
+  open?: boolean;
+  onCloseEnd?: () => void;
 }
 
 export default function FileStatusBanner({
@@ -15,11 +17,29 @@ export default function FileStatusBanner({
   archivos = null,
   onModify,
   onDownload,
+  open = true,
+  onCloseEnd,
 }: FileStatusBannerProps) {
   const [coopName, setCoopName] = useState("");
+  const [render, setRender] = useState(open);
+  const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    // prioridad: prop cooperativa.name
+    if (open) {
+      setRender(true);
+      setExiting(false);
+    } else if (!open && render) {
+      setExiting(true);
+      const t = setTimeout(() => {
+        setRender(false);
+        setExiting(false);
+        if (onCloseEnd) onCloseEnd();
+      }, 350);
+      return () => clearTimeout(t);
+    }
+  }, [open, render, onCloseEnd]);
+
+  useEffect(() => {
     let name = cooperativa?.name || "";
     if (!name) {
       try {
@@ -28,9 +48,7 @@ export default function FileStatusBanner({
           const parsed = JSON.parse(rawCoop);
           name = parsed.name || parsed.nombre || name;
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
     if (!name) {
       try {
@@ -46,16 +64,22 @@ export default function FileStatusBanner({
             parsedForm.nombre ||
             name;
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
     setCoopName(name || "");
   }, [cooperativa]);
 
+  if (!render) return null;
+
   return (
-    <div className="file-status-banner-overlay">
-      <div className="file-status-banner">
+    <div
+      className={`file-status-banner-overlay ${
+        open && !exiting ? "enter" : "exit"
+      }`}
+    >
+      <div
+        className={`file-status-banner ${open && !exiting ? "enter" : "exit"}`}
+      >
         <h2>¡Hola!</h2>
         <h2>{coopName}</h2>
         <p>
