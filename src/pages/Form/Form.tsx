@@ -171,12 +171,12 @@ export default function Form() {
               }
               const byteArray = new Uint8Array(byteNumbers);
               // intentar detectar tipo (suponemos PDF si nombre termina en .pdf)
-              const mime = filename.toLowerCase().endsWith('.pdf')
-                ? 'application/pdf'
-                : 'application/octet-stream';
+              const mime = filename.toLowerCase().endsWith(".pdf")
+                ? "application/pdf"
+                : "application/octet-stream";
               const blob = new Blob([byteArray], { type: mime });
               const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
+              const link = document.createElement("a");
               link.href = url;
               link.download = filename;
               document.body.appendChild(link);
@@ -187,6 +187,34 @@ export default function Form() {
               // ignorar error individual y continuar con el siguiente
             }
           });
+        }}
+        onDownloadOne={(a, idx) => {
+          try {
+            const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
+            const rawBase64: string | undefined = a.fileContent || a.base64;
+            if (!rawBase64) return;
+            const cleaned = rawBase64.replace(/\s+/g, "");
+            const byteChars = atob(cleaned);
+            const byteNumbers = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+              byteNumbers[i] = byteChars.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const mime = filename.toLowerCase().endsWith(".pdf")
+              ? "application/pdf"
+              : "application/octet-stream";
+            const blob = new Blob([byteArray], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+          } catch (e) {
+            // ignore single download error
+          }
         }}
       />
       <div className="form-container">

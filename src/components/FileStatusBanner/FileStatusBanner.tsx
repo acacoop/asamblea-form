@@ -1,6 +1,7 @@
 import "./FileStatusBanner.css";
 import type { Cooperativa } from "../../types/types";
 import Button from "../Button/Button";
+import IconDownload from "../../assets/download.svg";
 import { useEffect, useState } from "react";
 
 interface FileStatusBannerProps {
@@ -8,6 +9,7 @@ interface FileStatusBannerProps {
   archivos?: any[] | null;
   onModify?: () => void;
   onDownload?: (archivos: any[]) => void;
+  onDownloadOne?: (archivo: any, index: number) => void;
   open?: boolean;
   onCloseEnd?: () => void;
 }
@@ -17,6 +19,7 @@ export default function FileStatusBanner({
   archivos = null,
   onModify,
   onDownload,
+  onDownloadOne,
   open = true,
   onCloseEnd,
 }: FileStatusBannerProps) {
@@ -88,6 +91,36 @@ export default function FileStatusBanner({
         </p>
         <p>¿Desea modificarlos o continuar con los datos existentes?</p>
         <p>En caso de continuar puede verificarlos descargando el PDF</p>
+        {archivos && archivos.length > 0 && (
+          <div className="file-status-banner-filelist">
+            <p style={{ fontWeight: 600, marginTop: 10, marginBottom: 6 }}>
+              Archivos disponibles:
+            </p>
+            <ul>
+              {archivos.map((f, i) => {
+                const display = f.name || f.nombre || `archivo_${i + 1}`;
+                return (
+                  <li
+                    key={i}
+                    className={onDownloadOne ? "file-clickable" : undefined}
+                    onClick={() => onDownloadOne && onDownloadOne(f, i)}
+                    title={onDownloadOne ? "Descargar este archivo" : undefined}
+                    aria-label={`Descargar ${display}`}
+                    role={onDownloadOne ? "button" : undefined}
+                  >
+                    <img
+                      src={IconDownload}
+                      alt="Descargar"
+                      className="icon-download"
+                      draggable={false}
+                    />
+                    <span className="file-name-text">{display}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
         <div className="button-group">
           <Button
             label="Descargar archivos"

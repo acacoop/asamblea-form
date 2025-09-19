@@ -1,4 +1,3 @@
-/* Overlay contenedor */
 .file-status-banner-overlay {
   position: fixed;
   top: 0;
@@ -106,4 +105,76 @@
   margin: 6px 0;
   text-align: center;
   line-height: 1.35;
+}
+
+.file-status-banner-filelist {
+  width: 100%;
+  max-height: 160px;
+  overflow-y: auto;
+  background: #f9fafc;
+  border: 1px solid var(--border-gray);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  margin-top: 4px;
+}
+.file-status-banner-filelist ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+.file-status-banner-filelist li {
+  font-size: 14px;
+  color: #2e3b52;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.file-status-banner-filelist li.file-clickable {
+  cursor: pointer;
+  position: relative;
+  padding: 4px 6px 4px 4px;
+  transition: color 0.18s ease, background-color 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.file-status-banner-filelist li.file-clickable:hover {
+  color: var(--aca-blue);
+  background: rgba(40, 45, 135, 0.08);
+  border-radius: 4px;
+}
+.file-status-banner-filelist li.file-clickable:active {
+  background: rgba(40, 45, 135, 0.15);
+}
+.file-status-banner-filelist .icon-download {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.file-status-banner-filelist li.file-clickable:hover .icon-download {
+  opacity: 1;
+  transform: scale(1.05);
+}
+.file-status-banner-filelist .file-name-text {
+  flex: 1;
+}
+.file-status-banner-filelist li:last-child {
+  margin-bottom: 0;
+}
+
+.file-status-banner-filelist::-webkit-scrollbar {
+  width: 8px;
+}
+.file-status-banner-filelist::-webkit-scrollbar-track {
+  background: transparent;
+}
+.file-status-banner-filelist::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+.file-status-banner-filelist::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
