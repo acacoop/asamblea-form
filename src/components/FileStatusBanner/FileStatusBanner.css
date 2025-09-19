@@ -1,0 +1,53 @@
+/* Overlay contenedor */
+.file-status-banner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Caja del banner */
+.file-status-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  padding: 40px;
+  max-width: 800px;
+  width: 100%;
+  border-radius: 20px;
+  color: var(--aca-blue);
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.button-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.file-status-banner h2:first-of-type {
+  margin-bottom: 0;
+}
+.file-status-banner h2 + h2 {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.file-status-banner p {
+  margin: 6px 0;
+  text-align: center;
+  line-height: 1.35;
+}

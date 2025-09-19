@@ -5,8 +5,13 @@ import Footer from "../../components/Footer/Footer";
 import FormGroup from "../../components/FormGroup/FormGroup";
 import { useEffect, useState } from "react";
 import type { Cooperativa } from "../../types/types";
+import FileStatusBanner from "../../components/FileStatusBanner/FileStatusBanner";
 
-import { processFormSubmission, downloadGeneratedDocument, extractFormDataAsJSON } from "../../utils/formDataExtractor";
+import {
+  processFormSubmission,
+  downloadGeneratedDocument,
+  extractFormDataAsJSON,
+} from "../../utils/formDataExtractor";
 
 function normalizeCooperativa(raw: any): Cooperativa {
   if (!raw) return { code: "" } as Cooperativa;
@@ -23,7 +28,7 @@ function normalizeCooperativa(raw: any): Cooperativa {
 }
 
 const DocumentTestButtons = () => (
-  <div style={{margin: "20px", textAlign: "center"}}>
+  <div style={{ margin: "20px", textAlign: "center" }}>
     <button onClick={() => console.log(extractFormDataAsJSON())}>
       Log JSON Data
     </button>
@@ -36,6 +41,10 @@ const DocumentTestButtons = () => (
 export default function Form() {
   const [cooperativaSeleccionada, setCooperativaSeleccionada] =
     useState<Cooperativa | null>(null);
+  const [showFileStatusBanner, setShowFileStatusBanner] = useState(false);
+  const [archivosExistentes, setArchivosExistentes] = useState<any[] | null>(
+    null
+  );
 
   useEffect(() => {
     try {
@@ -67,6 +76,34 @@ export default function Form() {
 
       if (rawForm) {
         const parsedForm = JSON.parse(rawForm);
+
+        // Detectar la existencia de un array de archivos (>0) para decidir si mostrar el banner
+        function extractArchivosArray(obj: any): any[] | null {
+          if (!obj || typeof obj !== "object") return null;
+          // claves candidatas
+          const candidates = ["archivos", "files", "documentos", "attachments"];
+          for (const key of candidates) {
+            const val = (obj as any)[key];
+            if (Array.isArray(val)) return val;
+          }
+          // buscar dentro de datos si existe
+          if (obj.datos) {
+            for (const key of candidates) {
+              const val = obj.datos[key];
+              if (Array.isArray(val)) return val;
+            }
+          }
+          return null;
+        }
+        try {
+          const archivosArr = extractArchivosArray(parsedForm);
+          const hasFiles = !!archivosArr && archivosArr.length > 0;
+          setShowFileStatusBanner(hasFiles);
+          setArchivosExistentes(hasFiles ? archivosArr! : null);
+        } catch (e) {
+          setShowFileStatusBanner(false);
+          setArchivosExistentes(null);
+        }
         const coopFromForm =
           findPossibleCooperativa(parsedForm) ?? parsedForm?.datos ?? null;
         // If parsedForm provides datos but no cooperativa fields, try to merge with local 'cooperativa'
@@ -114,6 +151,40 @@ export default function Form() {
 
   return (
     <div className="form">
+      {showFileStatusBanner && (
+        <FileStatusBanner
+          cooperativa={cooperativaSeleccionada}
+          archivos={archivosExistentes || []}
+          onModify={() => setShowFileStatusBanner(false)}
+          onDownload={(archs) => {
+            archs.forEach((a, idx) => {
+              try {
+                // soportar a.url (directa) o a.base64 (data)
+                let linkHref: string | null = null;
+                let filename = a.nombre || a.name || `archivo_${idx + 1}`;
+                if (a.url) {
+                  linkHref = a.url;
+                } else if (a.base64) {
+                  const base = a.base64.startsWith("data:")
+                    ? a.base64
+                    : `data:application/octet-stream;base64,${a.base64}`;
+                  linkHref = base;
+                }
+                if (linkHref) {
+                  const link = document.createElement("a");
+                  link.href = linkHref;
+                  link.download = filename;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              } catch (e) {
+                // continuar con el siguiente
+              }
+            });
+          }}
+        />
+      )}
       <div className="form-container">
         <HeaderForm titleForm="Registro de Votación" showButtonBack={true} />
         <BodyForm

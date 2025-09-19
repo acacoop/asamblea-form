@@ -66,7 +66,7 @@ export default function AccessToForm() {
       <div className="access-form-container">
         <div className="input-group">
           <label className="input-label" htmlFor="cooperativeId">
-            Código de Cooperativa <span className="required">*</span> :
+            Código de Cooperativa <span className="required">*</span>
           </label>
           <input
             className="input-field"
@@ -81,7 +81,7 @@ export default function AccessToForm() {
         </div>
         <div className="input-group">
           <label className="input-label" htmlFor="verificationCode">
-            Código Verificador <span className="required">*</span> :
+            Código Verificador <span className="required">*</span>
           </label>
           <input
             className="input-field"
