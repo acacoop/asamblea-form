@@ -3,6 +3,7 @@ import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 import templateCredencialUrl from "../assets/template-credencial.docx?url";
 import templateCartaPoderUrl from "../assets/template-carta-poder.docx?url";
+import { RECORD_SEP } from "papaparse";
 
 const AUTOMATE_UPLOAD_ENDPOINT = import.meta.env.VITE_AUTOMATE_UPLOAD_ENDPOINT || "";
 const AUTOMATE_FETCH_ENDPOINT = import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
@@ -108,6 +109,76 @@ export function extractFormDataAsJSON() {
 /**
  * Generate PDF from DOCX template using the form data
  */
+export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
+  try {
+    // Load the template from the assets folder
+    const templateResponse = await fetch(templateCartaPoderUrl);
+    if (!templateResponse.ok) {
+      throw new Error('Template file not found');
+    }
+    const templateBuffer = await templateResponse.arrayBuffer();
+
+    // Extract needed data
+    const cooperativaName = formData.cooperativa?.name || formData.cooperativa?.nombre || '';
+    const presidente = formData.formData?.datos?.autoridades?.presidente || '';
+    const secretario = formData.formData?.datos?.autoridades?.secretario || '';
+    const titulares = formData.formData?.titulares || formData.titulares || [];
+    const suplentes = formData.formData?.suplentes || formData.suplentes || [];
+    const cartasPoder = formData.formData?.datos?.cartasPoder || [];
+    const allPeople = [...titulares, ...suplentes];
+
+    // Helper to find person by id
+    const findPerson = (id: string) => allPeople.find((p: any) => p.id === id) || {};
+
+    // For each carta poder, generate a docx blob
+    const blobs: Blob[] = [];
+
+    const blobFiles: { blob: Blob; fileName: string }[] = [];
+
+    for (const carta of cartasPoder) {
+      const poderante = findPerson(carta.poderanteId);
+      const apoderado = findPerson(carta.apoderadoId);
+
+      const templateData = {
+        poderdante: poderante.nombre || '',
+        dniPoderdante: poderante.documento || poderante.dni || '',
+        apoderado: apoderado.nombre || '',
+        dniApoderado: apoderado.documento || apoderado.dni || '',
+        cooperativaName,
+        presidente,
+        secretario
+      };
+
+      var fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}-CartaPoder_${poderante.nombre || 'SinNombre'}.docx`;
+      // Create a new docxtemplater instance for each carta
+      const zip = new PizZip(templateBuffer);
+      const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+      });
+      doc.render(templateData);
+      const output = doc.getZip().generate({
+        type: "blob",
+        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      blobFiles.push({ blob: output, fileName });
+    }
+    // If only one carta, return the blob directly for backward compatibility
+    if (blobFiles.length === 1) return blobFiles[0].blob;
+    // Otherwise, return the array (caller should handle)
+    // @ts-ignore
+    return blobFiles;
+  } catch (error: any) {
+    console.error('Error generating PDF:', error);
+    if (error.properties && error.properties.errors instanceof Array) {
+      const errorMessages = error.properties.errors.map((err: any) => err.properties.explanation).join(", ");
+      throw new Error(`Template error: ${errorMessages}`);
+    }
+    throw new Error('Failed to generate PDF from template');
+  }
+}
+
+
 export async function generatePDF(formData: any): Promise<Blob> {
   try {
     // Load the template from the assets folder
@@ -320,14 +391,23 @@ export async function processFormSubmission(
 export async function downloadGeneratedDocument(): Promise<void> {
   try {
     const formData = extractFormDataAsJSON();
-    const pdfBlob = await generatePDF(formData);
+    const credencialBlob = await generatePDF(formData);
+    const cartasPoderBlobs = await generateCartaPoderPDF(formData);
     
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}_${timestamp}.docx`;
+    const fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}-Credencial.docx`;
     
-    const files = [{ blob: pdfBlob, name: fileName },{blob: pdfBlob, name: 'carta-poder.docx'},{blob: pdfBlob, name: 'carta-poder2.docx'}];
+    const files: { blob: Blob; name: string }[] = [];
 
-    saveAs(pdfBlob, fileName);
+    files.push({ blob: credencialBlob, name: fileName });
+    for (const cartaBlob of cartasPoderBlobs) {
+      files.push({ blob: cartaBlob.blob, name: cartaBlob.fileName });
+    }
+
+    for (const { blob, name } of files) {
+      saveAs(blob, name);
+    }
+
     uploadPDF(files, formData.cooperativa?.code || 'Unknown');
   } catch (error) {
     console.error('Error downloading document:', error);
