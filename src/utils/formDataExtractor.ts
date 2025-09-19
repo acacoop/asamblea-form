@@ -9,38 +9,89 @@ const AUTOMATE_UPLOAD_ENDPOINT =
 const AUTOMATE_FETCH_ENDPOINT =
   import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
 
+
 /**
- * Debug function to check localStorage data structure
+ * Transform the current form data into the required JSON schema format
  */
-export function debugLocalStorageData() {
+export function transformFormDataToSchema(): any {
   const formData = localStorage.getItem("formExistingData");
   const cooperativaData = localStorage.getItem("cooperativa");
+  const parsedForm = formData ? JSON.parse(formData) : {};
+  const parsedCoop = cooperativaData ? JSON.parse(cooperativaData) : {};
 
-  console.log("=== DEBUG localStorage ===");
-  console.log("formExistingData raw:", formData);
-  console.log("cooperativa raw:", cooperativaData);
+  console.log("Raw parsed form:", parsedForm);
+  console.log("Raw parsed coop:", parsedCoop);
 
-  if (formData) {
-    const parsed = JSON.parse(formData);
-    console.log("formExistingData parsed:", parsed);
-    console.log("formExistingData.cooperativa:", parsed.cooperativa);
-    console.log("formExistingData.datos:", parsed.datos);
+  // Cooperativa fields
+  const cooperativa = {
+    codigo: parsedCoop.code || parsedCoop.codigo || parsedForm?.cooperativa?.code || parsedForm?.cooperativa?.codigo || '',
+    nombre: parsedCoop.name || parsedCoop.nombre || parsedForm?.cooperativa?.name || parsedForm?.cooperativa?.nombre || '',
+    votos: parseInt(parsedCoop.votes || parsedCoop.votos || parsedForm?.cooperativa?.votes || parsedForm?.cooperativa?.votos || 0),
+    suplentes: parseInt(parsedCoop.suplentes || parsedCoop.substitutes || parsedForm?.cooperativa?.suplentes || parsedForm?.cooperativa?.substitutes || 0),
+    car: parsedCoop.CAR || parsedCoop.car || parsedForm?.cooperativa?.CAR || parsedForm?.cooperativa?.car || '',
+    carNombre: parsedCoop["CAR Nombre"] || parsedCoop.carNombre || parsedForm?.cooperativa?.["CAR Nombre"] || parsedForm?.cooperativa?.carNombre || ''
+  };
+
+  // Autoridades (try to get from multiple possible locations)
+  const autoridades = {
+    secretario:
+      parsedForm?.datos?.autoridades?.secretario ||
+      parsedForm?.autoridades?.secretario ||
+      parsedForm?.secretario ||
+      parsedCoop?.secretario ||
+      '',
+    presidente:
+      parsedForm?.datos?.autoridades?.presidente ||
+      parsedForm?.autoridades?.presidente ||
+      parsedForm?.presidente ||
+      parsedCoop?.presidente ||
+      ''
+  };
+
+  // Contacto (try to get from multiple possible locations)
+  const contacto = {
+    correoElectronico:
+      parsedForm?.datos?.contacto?.correoElectronico ||
+      parsedForm?.contacto?.correoElectronico ||
+      parsedForm?.correoElectronico ||
+      parsedCoop?.correoElectronico ||
+      ''
+  };
+
+  // Arrays (ensure always array, never stringified)
+  function parseArray(field: any) {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    try {
+      const parsed = JSON.parse(field);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return [];
   }
+  const titulares = parseArray(parsedForm?.datos?.titulares);
+  const suplentes = parseArray(parsedForm?.datos?.suplentes);
+  const cartasPoder: any[] = parseArray(parsedForm?.datos?.cartasPoder);
 
-  if (cooperativaData) {
-    const parsed = JSON.parse(cooperativaData);
-    console.log("cooperativa parsed:", parsed);
-    console.log("cooperativa.name:", parsed.name);
-    console.log("cooperativa.nombre:", parsed.nombre);
-    console.log("All cooperativa keys:", Object.keys(parsed));
-  }
+  // Resumen
+  const resumen = {
+    votosEfectivos: parseInt(parsedForm?.datos?.resumen?.votosEfectivos || 0)
+  };
 
-  return { formData, cooperativaData };
+  // Timestamp
+  const timestamp = new Date().toISOString();
+
+  return {
+    timestamp,
+    cooperativa,
+    autoridades,
+    contacto,
+    titulares,
+    suplentes,
+    cartasPoder,
+    resumen
+  };
 }
 
-/**
- * Simple function to extract and format form data into JSON
- */
 export function extractFormDataAsJSON() {
   const formData = localStorage.getItem("formExistingData");
   const cooperativaData = localStorage.getItem("cooperativa");
@@ -51,8 +102,19 @@ export function extractFormDataAsJSON() {
   console.log("Raw parsed form:", parsedForm);
   console.log("Raw parsed coop:", parsedCoop);
 
+  // Normalize arrays helper function
+  const parseArray = (field: any) => {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    try {
+      const parsed = JSON.parse(field);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return [];
+  };
+
   // Get cartas poder to find apoderados
-  const cartasPoder = parsedForm?.datos?.cartasPoder || [];
+  const cartasPoder = parseArray(parsedForm?.datos?.cartasPoder);
   console.log("Cartas poder:", cartasPoder);
 
   // Helper function to find apoderado for a person
@@ -64,17 +126,6 @@ export function extractFormDataAsJSON() {
     return apoderado?.nombre || "";
   };
 
-  // Normalize arrays
-  const parseArray = (field: any) => {
-    if (!field) return [];
-    if (Array.isArray(field)) return field;
-    try {
-      const parsed = JSON.parse(field);
-      if (Array.isArray(parsed)) return parsed;
-    } catch (e) {}
-    return [];
-  };
-
   const titulares = parseArray(parsedForm?.datos?.titulares || []);
   const suplentes = parseArray(parsedForm?.datos?.suplentes || []);
   const allPeople = [...titulares, ...suplentes];
@@ -82,16 +133,30 @@ export function extractFormDataAsJSON() {
   console.log("Parsed titulares:", titulares);
   console.log("Parsed suplentes:", suplentes);
 
+
+  if(cartasPoder.length === 0) {
+      const result = {
+        cooperativa: parsedCoop,
+        formData: {
+          ...parsedForm,
+          titulares,
+          suplentes,
+        },
+    };
+      console.log("Final extracted data (no cartas poder):", result);
+      return result;
+  }
+
   // Add apoderado to each titular
   const titularesWithApoderado = titulares.map((titular: any) => ({
     ...titular,
-    apoderado: findApoderado(titular.id, allPeople),
+    apoderado: findApoderado(titular.id, allPeople) ?? "",
   }));
 
   // Add apoderado to each suplente (if needed)
   const suplentesWithApoderado = suplentes.map((suplente: any) => ({
     ...suplente,
-    apoderado: findApoderado(suplente.id, allPeople),
+    apoderado: findApoderado(suplente.id, allPeople) ?? "",
   }));
 
   const result = {
@@ -124,17 +189,31 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       formData.cooperativa?.name || formData.cooperativa?.nombre || "";
     const presidente = formData.formData?.datos?.autoridades?.presidente || "";
     const secretario = formData.formData?.datos?.autoridades?.secretario || "";
-    const titulares = formData.formData?.titulares || formData.titulares || [];
-    const suplentes = formData.formData?.suplentes || formData.suplentes || [];
-    const cartasPoder = formData.formData?.datos?.cartasPoder || [];
+    
+    // Helper to ensure arrays are always arrays, never strings
+    const parseArray = (field: any) => {
+      if (!field) return [];
+      if (Array.isArray(field)) return field;
+      try {
+        const parsed = JSON.parse(field);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+      return [];
+    };
+    
+    const titulares = parseArray(formData.formData?.titulares || formData.titulares);
+    const suplentes = parseArray(formData.formData?.suplentes || formData.suplentes);
+    const cartasPoder = parseArray(formData.formData?.datos?.cartasPoder);
     const allPeople = [...titulares, ...suplentes];
+
+    if(cartasPoder.length === 0) {
+      console.log("No cartas poder found, skipping carta poder generation.");
+      return new Blob();
+    }
 
     // Helper to find person by id
     const findPerson = (id: string) =>
       allPeople.find((p: any) => p.id === id) || {};
-
-    // For each carta poder, generate a docx blob
-    const blobs: Blob[] = [];
 
     const blobFiles: { blob: Blob; fileName: string }[] = [];
 
@@ -151,6 +230,8 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
         presidente,
         secretario,
       };
+
+      console.log("Generating carta poder with data:", templateData);
 
       var fileName = `Asamblea_2025_${
         formData.cooperativa?.code || "Unknown"
@@ -169,9 +250,7 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       });
       blobFiles.push({ blob: output, fileName });
     }
-    // If only one carta, return the blob directly for backward compatibility
-    if (blobFiles.length === 1) return blobFiles[0].blob;
-    // Otherwise, return the array (caller should handle)
+    // Always return the array format for consistency
     // @ts-ignore
     return blobFiles;
   } catch (error: any) {
@@ -412,10 +491,8 @@ export async function downloadGeneratedDocument(): Promise<void> {
   try {
     const formData = extractFormDataAsJSON();
     const credencialBlob = await generatePDF(formData);
-    const cartasPoderBlobs: { blob: Blob; fileName: string }[] =
-      await generateCartaPoderPDF(formData);
+    const cartasPoderBlobs = await generateCartaPoderPDF(formData);
 
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
     const fileName = `Asamblea_2025_${
       formData.cooperativa?.code || "Unknown"
     }-Credencial.docx`;
@@ -423,12 +500,10 @@ export async function downloadGeneratedDocument(): Promise<void> {
     const files: { blob: Blob; name: string }[] = [];
 
     files.push({ blob: credencialBlob, name: fileName });
-    for (const cartaBlob of cartasPoderBlobs) {
-      files.push({ blob: cartaBlob.blob, name: cartaBlob.fileName });
-    }
-
-    for (const { blob, name } of files) {
-      saveAs(blob, name);
+    if (Array.isArray(cartasPoderBlobs)) {
+      cartasPoderBlobs.forEach(cartaBlob => {
+        files.push({ blob: cartaBlob.blob, name: cartaBlob.fileName });
+      });
     }
 
     uploadPDF(files, formData.cooperativa?.code || "Unknown");

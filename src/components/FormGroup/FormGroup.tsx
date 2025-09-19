@@ -106,9 +106,24 @@ export default function FormGroup({ cooperativa }: Props) {
     setTitulares(normalize(rawTitulares));
     setSuplentesArr(normalize(rawSuplentes));
   }, [cooperativa]);
+
+  // Persist autoridades and contacto when they change
+  useEffect(() => {
+    if (secretario || presidente) {
+      persistLists(undefined, undefined, { presidente, secretario }, undefined);
+    }
+  }, [secretario, presidente]);
+
+  useEffect(() => {
+    if (contactoEmail) {
+      persistLists(undefined, undefined, undefined, { correoElectronico: contactoEmail });
+    }
+  }, [contactoEmail]);
   function persistLists(
     updatedTitulares?: typeof titulares,
-    updatedSuplentes?: typeof suplentesArr
+    updatedSuplentes?: typeof suplentesArr,
+    updatedAutoridades?: { presidente: string; secretario: string },
+    updatedContacto?: { correoElectronico: string }
   ) {
     try {
       const raw = localStorage.getItem("formExistingData");
@@ -118,6 +133,15 @@ export default function FormGroup({ cooperativa }: Props) {
       if (updatedTitulares) parsed.titulares = updatedTitulares;
       if (updatedSuplentes) parsed.datos.suplentes = updatedSuplentes;
       if (updatedSuplentes) parsed.suplentes = updatedSuplentes;
+      if (updatedAutoridades) {
+        parsed.datos.autoridades = parsed.datos.autoridades ?? {};
+        parsed.datos.autoridades.presidente = updatedAutoridades.presidente;
+        parsed.datos.autoridades.secretario = updatedAutoridades.secretario;
+      }
+      if (updatedContacto) {
+        parsed.datos.contacto = parsed.datos.contacto ?? {};
+        parsed.datos.contacto.correoElectronico = updatedContacto.correoElectronico;
+      }
       localStorage.setItem("formExistingData", JSON.stringify(parsed));
       // notify other components in the same window
       try {

@@ -10,7 +10,9 @@ import FileStatusBanner from "../../components/FileStatusBanner/FileStatusBanner
 import {
   downloadGeneratedDocument,
   extractFormDataAsJSON,
+  transformFormDataToSchema,
 } from "../../utils/formDataExtractor";
+import { guardarFormulario } from "../../services/services";
 
 function normalizeCooperativa(raw: any): Cooperativa {
   if (!raw) return { code: "" } as Cooperativa;
@@ -26,9 +28,26 @@ function normalizeCooperativa(raw: any): Cooperativa {
   return mapped;
 }
 
+
+
 const DocumentTestButtons = () => (
   <div style={{ margin: "20px", textAlign: "center" }}>
-    <button className="button" onClick={() => downloadGeneratedDocument()}>
+    <button className="button" onClick={async () => {
+        await downloadGeneratedDocument().then((resp) => {
+          console.log("Documento generado:", resp);
+        }).catch((err) => {
+          console.error("Error al generar el documento:", err);
+        });
+        const dataSchema = transformFormDataToSchema();
+        console.log("Datos extraídos para envío:", dataSchema);
+
+        await guardarFormulario(dataSchema).then((resp) => {
+          console.log("Respuesta del servidor:", resp);
+        }).catch((err) => {
+          console.error("Error al enviar el formulario:", err);
+        });
+      }
+      }>
       Enviar formulario
     </button>
   </div>
