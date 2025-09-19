@@ -8,7 +8,6 @@ import type { Cooperativa } from "../../types/types";
 import FileStatusBanner from "../../components/FileStatusBanner/FileStatusBanner";
 
 import {
-  processFormSubmission,
   downloadGeneratedDocument,
   extractFormDataAsJSON,
 } from "../../utils/formDataExtractor";
@@ -29,11 +28,8 @@ function normalizeCooperativa(raw: any): Cooperativa {
 
 const DocumentTestButtons = () => (
   <div style={{ margin: "20px", textAlign: "center" }}>
-    <button onClick={() => console.log(extractFormDataAsJSON())}>
-      Log JSON Data
-    </button>
-    <button onClick={() => downloadGeneratedDocument()}>
-      Download Document
+    <button className="button" onClick={() => downloadGeneratedDocument()}>
+      Enviar formulario
     </button>
   </div>
 );
@@ -222,8 +218,7 @@ export default function Form() {
         <BodyForm
           introText="Complete el siguiente formulario con sus datos personales. Los campos marcados con asterisco (*) son obligatorios."
           showCards={false}
-          showButton={true}
-          buttonLabel="Enviar formulario"
+          showButton={false}
         >
           <FormGroup cooperativa={cooperativaSeleccionada} />
           <DocumentTestButtons />

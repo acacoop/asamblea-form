@@ -3,10 +3,11 @@ import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 import templateCredencialUrl from "../assets/template-credencial.docx?url";
 import templateCartaPoderUrl from "../assets/template-carta-poder.docx?url";
-import { RECORD_SEP } from "papaparse";
 
-const AUTOMATE_UPLOAD_ENDPOINT = import.meta.env.VITE_AUTOMATE_UPLOAD_ENDPOINT || "";
-const AUTOMATE_FETCH_ENDPOINT = import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
+const AUTOMATE_UPLOAD_ENDPOINT =
+  import.meta.env.VITE_AUTOMATE_UPLOAD_ENDPOINT || "";
+const AUTOMATE_FETCH_ENDPOINT =
+  import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
 
 /**
  * Debug function to check localStorage data structure
@@ -14,26 +15,26 @@ const AUTOMATE_FETCH_ENDPOINT = import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || 
 export function debugLocalStorageData() {
   const formData = localStorage.getItem("formExistingData");
   const cooperativaData = localStorage.getItem("cooperativa");
-  
-  console.log('=== DEBUG localStorage ===');
-  console.log('formExistingData raw:', formData);
-  console.log('cooperativa raw:', cooperativaData);
-  
+
+  console.log("=== DEBUG localStorage ===");
+  console.log("formExistingData raw:", formData);
+  console.log("cooperativa raw:", cooperativaData);
+
   if (formData) {
     const parsed = JSON.parse(formData);
-    console.log('formExistingData parsed:', parsed);
-    console.log('formExistingData.cooperativa:', parsed.cooperativa);
-    console.log('formExistingData.datos:', parsed.datos);
+    console.log("formExistingData parsed:", parsed);
+    console.log("formExistingData.cooperativa:", parsed.cooperativa);
+    console.log("formExistingData.datos:", parsed.datos);
   }
-  
+
   if (cooperativaData) {
     const parsed = JSON.parse(cooperativaData);
-    console.log('cooperativa parsed:', parsed);
-    console.log('cooperativa.name:', parsed.name);
-    console.log('cooperativa.nombre:', parsed.nombre);
-    console.log('All cooperativa keys:', Object.keys(parsed));
+    console.log("cooperativa parsed:", parsed);
+    console.log("cooperativa.name:", parsed.name);
+    console.log("cooperativa.nombre:", parsed.nombre);
+    console.log("All cooperativa keys:", Object.keys(parsed));
   }
-  
+
   return { formData, cooperativaData };
 }
 
@@ -43,26 +44,26 @@ export function debugLocalStorageData() {
 export function extractFormDataAsJSON() {
   const formData = localStorage.getItem("formExistingData");
   const cooperativaData = localStorage.getItem("cooperativa");
-  
+
   const parsedForm = formData ? JSON.parse(formData) : {};
   const parsedCoop = cooperativaData ? JSON.parse(cooperativaData) : {};
-  
-  console.log('Raw parsed form:', parsedForm);
-  console.log('Raw parsed coop:', parsedCoop);
-  
+
+  console.log("Raw parsed form:", parsedForm);
+  console.log("Raw parsed coop:", parsedCoop);
+
   // Get cartas poder to find apoderados
   const cartasPoder = parsedForm?.datos?.cartasPoder || [];
-  console.log('Cartas poder:', cartasPoder);
-  
+  console.log("Cartas poder:", cartasPoder);
+
   // Helper function to find apoderado for a person
   const findApoderado = (personId: string, allPeople: any[]) => {
     const carta = cartasPoder.find((c: any) => c.poderanteId === personId);
     if (!carta?.apoderadoId) return ""; // Return empty string instead of null
-    
+
     const apoderado = allPeople.find((p: any) => p.id === carta.apoderadoId);
     return apoderado?.nombre || "";
   };
-  
+
   // Normalize arrays
   const parseArray = (field: any) => {
     if (!field) return [];
@@ -73,36 +74,36 @@ export function extractFormDataAsJSON() {
     } catch (e) {}
     return [];
   };
-  
+
   const titulares = parseArray(parsedForm?.datos?.titulares || []);
   const suplentes = parseArray(parsedForm?.datos?.suplentes || []);
   const allPeople = [...titulares, ...suplentes];
-  
-  console.log('Parsed titulares:', titulares);
-  console.log('Parsed suplentes:', suplentes);
-  
+
+  console.log("Parsed titulares:", titulares);
+  console.log("Parsed suplentes:", suplentes);
+
   // Add apoderado to each titular
   const titularesWithApoderado = titulares.map((titular: any) => ({
     ...titular,
-    apoderado: findApoderado(titular.id, allPeople)
+    apoderado: findApoderado(titular.id, allPeople),
   }));
-  
+
   // Add apoderado to each suplente (if needed)
   const suplentesWithApoderado = suplentes.map((suplente: any) => ({
     ...suplente,
-    apoderado: findApoderado(suplente.id, allPeople)
+    apoderado: findApoderado(suplente.id, allPeople),
   }));
-  
+
   const result = {
     cooperativa: parsedCoop,
     formData: {
       ...parsedForm,
       titulares: titularesWithApoderado,
-      suplentes: suplentesWithApoderado
-    }
+      suplentes: suplentesWithApoderado,
+    },
   };
-  
-  console.log('Final extracted data:', result);
+
+  console.log("Final extracted data:", result);
   return result;
 }
 
@@ -114,21 +115,23 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
     // Load the template from the assets folder
     const templateResponse = await fetch(templateCartaPoderUrl);
     if (!templateResponse.ok) {
-      throw new Error('Template file not found');
+      throw new Error("Template file not found");
     }
     const templateBuffer = await templateResponse.arrayBuffer();
 
     // Extract needed data
-    const cooperativaName = formData.cooperativa?.name || formData.cooperativa?.nombre || '';
-    const presidente = formData.formData?.datos?.autoridades?.presidente || '';
-    const secretario = formData.formData?.datos?.autoridades?.secretario || '';
+    const cooperativaName =
+      formData.cooperativa?.name || formData.cooperativa?.nombre || "";
+    const presidente = formData.formData?.datos?.autoridades?.presidente || "";
+    const secretario = formData.formData?.datos?.autoridades?.secretario || "";
     const titulares = formData.formData?.titulares || formData.titulares || [];
     const suplentes = formData.formData?.suplentes || formData.suplentes || [];
     const cartasPoder = formData.formData?.datos?.cartasPoder || [];
     const allPeople = [...titulares, ...suplentes];
 
     // Helper to find person by id
-    const findPerson = (id: string) => allPeople.find((p: any) => p.id === id) || {};
+    const findPerson = (id: string) =>
+      allPeople.find((p: any) => p.id === id) || {};
 
     // For each carta poder, generate a docx blob
     const blobs: Blob[] = [];
@@ -140,16 +143,18 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       const apoderado = findPerson(carta.apoderadoId);
 
       const templateData = {
-        poderdante: poderante.nombre || '',
-        dniPoderdante: poderante.documento || poderante.dni || '',
-        apoderado: apoderado.nombre || '',
-        dniApoderado: apoderado.documento || apoderado.dni || '',
+        poderdante: poderante.nombre || "",
+        dniPoderdante: poderante.documento || poderante.dni || "",
+        apoderado: apoderado.nombre || "",
+        dniApoderado: apoderado.documento || apoderado.dni || "",
         cooperativaName,
         presidente,
-        secretario
+        secretario,
       };
 
-      var fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}-CartaPoder_${poderante.nombre || 'SinNombre'}.docx`;
+      var fileName = `Asamblea_2025_${
+        formData.cooperativa?.code || "Unknown"
+      }-CartaPoder_${poderante.nombre || "SinNombre"}.docx`;
       // Create a new docxtemplater instance for each carta
       const zip = new PizZip(templateBuffer);
       const doc = new Docxtemplater(zip, {
@@ -159,7 +164,8 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       doc.render(templateData);
       const output = doc.getZip().generate({
         type: "blob",
-        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
       blobFiles.push({ blob: output, fileName });
     }
@@ -169,82 +175,91 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
     // @ts-ignore
     return blobFiles;
   } catch (error: any) {
-    console.error('Error generating PDF:', error);
+    console.error("Error generating PDF:", error);
     if (error.properties && error.properties.errors instanceof Array) {
-      const errorMessages = error.properties.errors.map((err: any) => err.properties.explanation).join(", ");
+      const errorMessages = error.properties.errors
+        .map((err: any) => err.properties.explanation)
+        .join(", ");
       throw new Error(`Template error: ${errorMessages}`);
     }
-    throw new Error('Failed to generate PDF from template');
+    throw new Error("Failed to generate PDF from template");
   }
 }
-
 
 export async function generatePDF(formData: any): Promise<Blob> {
   try {
     // Load the template from the assets folder
     const templateResponse = await fetch(templateCredencialUrl);
     if (!templateResponse.ok) {
-      throw new Error('Template file not found');
+      throw new Error("Template file not found");
     }
-    
+
     // Read the template file as ArrayBuffer
     const templateBuffer = await templateResponse.arrayBuffer();
-    
+
     // Create a PizZip instance with the template
     const zip = new PizZip(templateBuffer);
-    
+
     // Create docxtemplater instance
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
     });
-    
+
     // Prepare data for the template - flatten the structure for docxtemplater
     const templateData = {
       // Flatten cooperativa to root level
-      cooperativaName: formData.cooperativa?.name || formData.cooperativa?.nombre || '',
-      cooperativaCode: formData.cooperativa?.code || formData.cooperativa?.codigo || '',
-      presidente: formData.formData?.datos?.autoridades?.presidente || '',
-      secretario: formData.formData?.datos?.autoridades?.secretario || '',
-      
+      cooperativaName:
+        formData.cooperativa?.name || formData.cooperativa?.nombre || "",
+      cooperativaCode:
+        formData.cooperativa?.code || formData.cooperativa?.codigo || "",
+      presidente: formData.formData?.datos?.autoridades?.presidente || "",
+      secretario: formData.formData?.datos?.autoridades?.secretario || "",
+
       // Also keep nested structure in case template uses it
       cooperativa: {
-        name: formData.cooperativa?.name || formData.cooperativa?.nombre || '',
-        code: formData.cooperativa?.code || formData.cooperativa?.codigo || ''
+        name: formData.cooperativa?.name || formData.cooperativa?.nombre || "",
+        code: formData.cooperativa?.code || formData.cooperativa?.codigo || "",
       },
-      
-      titulares: (formData.formData?.titulares || formData.titulares || []).map((t: any) => ({
-        nombre: t.nombre || '',
-        documento: t.documento || t.dni || '',
-        apoderado: t.apoderado || ''
-      })),
-      suplentes: (formData.formData?.suplentes || formData.suplentes || []).map((s: any) => ({
-        nombre: s.nombre || '',
-        documento: s.documento || s.dni || '',
-        apoderado: s.apoderado || ''
-      }))
+
+      titulares: (formData.formData?.titulares || formData.titulares || []).map(
+        (t: any) => ({
+          nombre: t.nombre || "",
+          documento: t.documento || t.dni || "",
+          apoderado: t.apoderado || "",
+        })
+      ),
+      suplentes: (formData.formData?.suplentes || formData.suplentes || []).map(
+        (s: any) => ({
+          nombre: s.nombre || "",
+          documento: s.documento || s.dni || "",
+          apoderado: s.apoderado || "",
+        })
+      ),
     };
-    
-    console.log('Template data being passed:', templateData); // Debug log
-    
+
+    console.log("Template data being passed:", templateData); // Debug log
+
     // Render the document (replace placeholders with actual data)
     doc.render(templateData);
-    
+
     // Generate the document as blob
     const output = doc.getZip().generate({
       type: "blob",
-      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
-    
+
     return output;
-    
   } catch (error: any) {
-    console.error('Error generating PDF:', error);
+    console.error("Error generating PDF:", error);
     if (error.properties && error.properties.errors instanceof Array) {
-      const errorMessages = error.properties.errors.map((err: any) => err.properties.explanation).join(", ");
+      const errorMessages = error.properties.errors
+        .map((err: any) => err.properties.explanation)
+        .join(", ");
       throw new Error(`Template error: ${errorMessages}`);
     }
-    throw new Error('Failed to generate PDF from template');
+    throw new Error("Failed to generate PDF from template");
   }
 }
 
@@ -252,46 +267,47 @@ export async function generatePDF(formData: any): Promise<Blob> {
  * Upload PDF to SharePoint via Power Automate endpoint
  */
 export async function uploadPDF(
-  files: Array<{blob: Blob, name: string}>,
+  files: Array<{ blob: Blob; name: string }>,
   cooperativaCode: string
 ): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
   try {
-    
     // Convert blobs to base64 strings
     const filesData = await Promise.all(
       files.map(async (file) => ({
         name: file.name,
-        content: await blobToBase64(file.blob)
+        content: await blobToBase64(file.blob),
       }))
     );
-    
+
     const body: any = {
       cooperativaCode,
-      files: filesData
+      files: filesData,
     };
-    
+
     const response = await fetch(AUTOMATE_UPLOAD_ENDPOINT, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Upload failed: ${response.status} ${response.statusText}`
+      );
     }
-    
+
     const result = await response.json();
     return {
       success: true,
-      fileUrl: result.fileUrl || result.url
+      fileUrl: result.fileUrl || result.url,
     };
   } catch (error) {
-    console.error('Error uploading PDF:', error);
+    console.error("Error uploading PDF:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Upload failed'
+      error: error instanceof Error ? error.message : "Upload failed",
     };
   }
 }
@@ -300,9 +316,9 @@ function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
+      if (typeof reader.result === "string") {
         // Remove data URL prefix (e.g., "data:application/pdf;base64,")
-        const base64 = reader.result.split(',')[1];
+        const base64 = reader.result.split(",")[1];
         resolve(base64);
       }
     };
@@ -314,35 +330,39 @@ function blobToBase64(blob: Blob): Promise<string> {
 /**
  * Fetch all PDF links for the logged cooperativa
  */
-export async function fetchPDFs(
-  cooperativaCode: string
-): Promise<{ success: boolean; files?: Array<{name: string, url: string, date: string}>; error?: string }> {
+export async function fetchPDFs(cooperativaCode: string): Promise<{
+  success: boolean;
+  files?: Array<{ name: string; url: string; date: string }>;
+  error?: string;
+}> {
   try {
     const url = new URL(AUTOMATE_FETCH_ENDPOINT);
-    url.searchParams.append('cooperativaCode', cooperativaCode);
-    url.searchParams.append('action', 'list');
-    
+    url.searchParams.append("cooperativaCode", cooperativaCode);
+    url.searchParams.append("action", "list");
+
     const response = await fetch(url.toString(), {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-      }
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Fetch failed: ${response.status} ${response.statusText}`
+      );
     }
-    
+
     const result = await response.json();
     return {
       success: true,
-      files: result.files || []
+      files: result.files || [],
     };
   } catch (error) {
-    console.error('Error fetching PDFs:', error);
+    console.error("Error fetching PDFs:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch PDFs'
+      error: error instanceof Error ? error.message : "Failed to fetch PDFs",
     };
   }
 }
@@ -350,37 +370,37 @@ export async function fetchPDFs(
 /**
  * Complete workflow: Extract data, generate PDF, and upload to SharePoint
  */
-export async function processFormSubmission(
-): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+export async function processFormSubmission(): Promise<{
+  success: boolean;
+  fileUrl?: string;
+  error?: string;
+}> {
   try {
     // Step 1: Extract form data
     const formData = extractFormDataAsJSON();
-    
+
     if (!formData.cooperativa?.code) {
-      throw new Error('Cooperativa code is required');
+      throw new Error("Cooperativa code is required");
     }
-    
+
     // Step 2: Generate PDF from template
     const pdfBlob = await generatePDF(formData);
-    
+
     // Step 3: Create filename with timestamp
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
     const fileName = `Asamblea_2025_${formData.cooperativa.code}_${timestamp}.docx`;
-    
+
     const files = [{ blob: pdfBlob, name: fileName }]; // Include carta poder as second file
 
     // Step 4: Upload to SharePoint
-    const uploadResult = await uploadPDF(
-      files,
-      formData.cooperativa.code
-    );
-    
+    const uploadResult = await uploadPDF(files, formData.cooperativa.code);
+
     return uploadResult;
   } catch (error) {
-    console.error('Error in form submission process:', error);
+    console.error("Error in form submission process:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Form submission failed'
+      error: error instanceof Error ? error.message : "Form submission failed",
     };
   }
 }
@@ -392,11 +412,14 @@ export async function downloadGeneratedDocument(): Promise<void> {
   try {
     const formData = extractFormDataAsJSON();
     const credencialBlob = await generatePDF(formData);
-    const cartasPoderBlobs = await generateCartaPoderPDF(formData);
-    
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const fileName = `Asamblea_2025_${formData.cooperativa?.code || 'Unknown'}-Credencial.docx`;
-    
+    const cartasPoderBlobs: { blob: Blob; fileName: string }[] =
+      await generateCartaPoderPDF(formData);
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const fileName = `Asamblea_2025_${
+      formData.cooperativa?.code || "Unknown"
+    }-Credencial.docx`;
+
     const files: { blob: Blob; name: string }[] = [];
 
     files.push({ blob: credencialBlob, name: fileName });
@@ -408,9 +431,9 @@ export async function downloadGeneratedDocument(): Promise<void> {
       saveAs(blob, name);
     }
 
-    uploadPDF(files, formData.cooperativa?.code || 'Unknown');
+    uploadPDF(files, formData.cooperativa?.code || "Unknown");
   } catch (error) {
-    console.error('Error downloading document:', error);
+    console.error("Error downloading document:", error);
     throw error;
   }
 }
