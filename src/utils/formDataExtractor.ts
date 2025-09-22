@@ -1,6 +1,5 @@
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
-import { saveAs } from "file-saver";
 import templateCredencialUrl from "../assets/template-credencial.docx?url";
 import templateCartaPoderUrl from "../assets/template-carta-poder.docx?url";
 
@@ -8,7 +7,6 @@ const AUTOMATE_UPLOAD_ENDPOINT =
   import.meta.env.VITE_AUTOMATE_UPLOAD_ENDPOINT || "";
 const AUTOMATE_FETCH_ENDPOINT =
   import.meta.env.VITE_AUTOMATE_FETCH_ENDPOINT || "";
-
 
 /**
  * Transform the current form data into the required JSON schema format
@@ -24,12 +22,44 @@ export function transformFormDataToSchema(): any {
 
   // Cooperativa fields
   const cooperativa = {
-    codigo: parsedCoop.code || parsedCoop.codigo || parsedForm?.cooperativa?.code || parsedForm?.cooperativa?.codigo || '',
-    nombre: parsedCoop.name || parsedCoop.nombre || parsedForm?.cooperativa?.name || parsedForm?.cooperativa?.nombre || '',
-    votos: parseInt(parsedCoop.votes || parsedCoop.votos || parsedForm?.cooperativa?.votes || parsedForm?.cooperativa?.votos || 0),
-    suplentes: parseInt(parsedCoop.suplentes || parsedCoop.substitutes || parsedForm?.cooperativa?.suplentes || parsedForm?.cooperativa?.substitutes || 0),
-    car: parsedCoop.CAR || parsedCoop.car || parsedForm?.cooperativa?.CAR || parsedForm?.cooperativa?.car || '',
-    carNombre: parsedCoop["CAR Nombre"] || parsedCoop.carNombre || parsedForm?.cooperativa?.["CAR Nombre"] || parsedForm?.cooperativa?.carNombre || ''
+    codigo:
+      parsedCoop.code ||
+      parsedCoop.codigo ||
+      parsedForm?.cooperativa?.code ||
+      parsedForm?.cooperativa?.codigo ||
+      "",
+    nombre:
+      parsedCoop.name ||
+      parsedCoop.nombre ||
+      parsedForm?.cooperativa?.name ||
+      parsedForm?.cooperativa?.nombre ||
+      "",
+    votos: parseInt(
+      parsedCoop.votes ||
+        parsedCoop.votos ||
+        parsedForm?.cooperativa?.votes ||
+        parsedForm?.cooperativa?.votos ||
+        0
+    ),
+    suplentes: parseInt(
+      parsedCoop.suplentes ||
+        parsedCoop.substitutes ||
+        parsedForm?.cooperativa?.suplentes ||
+        parsedForm?.cooperativa?.substitutes ||
+        0
+    ),
+    car:
+      parsedCoop.CAR ||
+      parsedCoop.car ||
+      parsedForm?.cooperativa?.CAR ||
+      parsedForm?.cooperativa?.car ||
+      "",
+    carNombre:
+      parsedCoop["CAR Nombre"] ||
+      parsedCoop.carNombre ||
+      parsedForm?.cooperativa?.["CAR Nombre"] ||
+      parsedForm?.cooperativa?.carNombre ||
+      "",
   };
 
   // Autoridades (try to get from multiple possible locations)
@@ -39,13 +69,13 @@ export function transformFormDataToSchema(): any {
       parsedForm?.autoridades?.secretario ||
       parsedForm?.secretario ||
       parsedCoop?.secretario ||
-      '',
+      "",
     presidente:
       parsedForm?.datos?.autoridades?.presidente ||
       parsedForm?.autoridades?.presidente ||
       parsedForm?.presidente ||
       parsedCoop?.presidente ||
-      ''
+      "",
   };
 
   // Contacto (try to get from multiple possible locations)
@@ -55,7 +85,7 @@ export function transformFormDataToSchema(): any {
       parsedForm?.contacto?.correoElectronico ||
       parsedForm?.correoElectronico ||
       parsedCoop?.correoElectronico ||
-      ''
+      "",
   };
 
   // Arrays (ensure always array, never stringified)
@@ -74,7 +104,7 @@ export function transformFormDataToSchema(): any {
 
   // Resumen
   const resumen = {
-    votosEfectivos: parseInt(parsedForm?.datos?.resumen?.votosEfectivos || 0)
+    votosEfectivos: parseInt(parsedForm?.datos?.resumen?.votosEfectivos || 0),
   };
 
   // Timestamp
@@ -88,7 +118,7 @@ export function transformFormDataToSchema(): any {
     titulares,
     suplentes,
     cartasPoder,
-    resumen
+    resumen,
   };
 }
 
@@ -133,18 +163,17 @@ export function extractFormDataAsJSON() {
   console.log("Parsed titulares:", titulares);
   console.log("Parsed suplentes:", suplentes);
 
-
-  if(cartasPoder.length === 0) {
-      const result = {
-        cooperativa: parsedCoop,
-        formData: {
-          ...parsedForm,
-          titulares,
-          suplentes,
-        },
+  if (cartasPoder.length === 0) {
+    const result = {
+      cooperativa: parsedCoop,
+      formData: {
+        ...parsedForm,
+        titulares,
+        suplentes,
+      },
     };
-      console.log("Final extracted data (no cartas poder):", result);
-      return result;
+    console.log("Final extracted data (no cartas poder):", result);
+    return result;
   }
 
   // Add apoderado to each titular
@@ -189,7 +218,7 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       formData.cooperativa?.name || formData.cooperativa?.nombre || "";
     const presidente = formData.formData?.datos?.autoridades?.presidente || "";
     const secretario = formData.formData?.datos?.autoridades?.secretario || "";
-    
+
     // Helper to ensure arrays are always arrays, never strings
     const parseArray = (field: any) => {
       if (!field) return [];
@@ -200,13 +229,17 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
       } catch (e) {}
       return [];
     };
-    
-    const titulares = parseArray(formData.formData?.titulares || formData.titulares);
-    const suplentes = parseArray(formData.formData?.suplentes || formData.suplentes);
+
+    const titulares = parseArray(
+      formData.formData?.titulares || formData.titulares
+    );
+    const suplentes = parseArray(
+      formData.formData?.suplentes || formData.suplentes
+    );
     const cartasPoder = parseArray(formData.formData?.datos?.cartasPoder);
     const allPeople = [...titulares, ...suplentes];
 
-    if(cartasPoder.length === 0) {
+    if (cartasPoder.length === 0) {
       console.log("No cartas poder found, skipping carta poder generation.");
       return new Blob();
     }
@@ -348,7 +381,11 @@ export async function generatePDF(formData: any): Promise<Blob> {
 export async function uploadPDF(
   files: Array<{ blob: Blob; name: string }>,
   cooperativaCode: string
-): Promise<{ success: boolean; files?: Array<{name: string, fileContent: string}>; error?: string }> {
+): Promise<{
+  success: boolean;
+  files?: Array<{ name: string; fileContent: string }>;
+  error?: string;
+}> {
   try {
     // Convert blobs to base64 strings
     const filesData = await Promise.all(
@@ -380,7 +417,7 @@ export async function uploadPDF(
     const result = await response.json();
     return {
       success: true,
-      files: result
+      files: result,
     };
   } catch (error) {
     console.error("Error uploading PDF:", error);
@@ -487,7 +524,11 @@ export async function processFormSubmission(): Promise<{
 /**
  * Download the generated document locally (for testing/backup)
  */
-export async function downloadGeneratedDocument(): Promise<{ success: boolean; files?: Array<{name: string, fileContent: string}>; error?: string }> {
+export async function downloadGeneratedDocument(): Promise<{
+  success: boolean;
+  files?: Array<{ name: string; fileContent: string }>;
+  error?: string;
+}> {
   try {
     const formData = extractFormDataAsJSON();
     const credencialBlob = await generatePDF(formData);
@@ -501,12 +542,15 @@ export async function downloadGeneratedDocument(): Promise<{ success: boolean; f
 
     files.push({ blob: credencialBlob, name: fileName });
     if (Array.isArray(cartasPoderBlobs)) {
-      cartasPoderBlobs.forEach(cartaBlob => {
+      cartasPoderBlobs.forEach((cartaBlob) => {
         files.push({ blob: cartaBlob.blob, name: cartaBlob.fileName });
       });
     }
 
-    const uploadResult = await uploadPDF(files, formData.cooperativa?.code || "Unknown");
+    const uploadResult = await uploadPDF(
+      files,
+      formData.cooperativa?.code || "Unknown"
+    );
     return uploadResult;
   } catch (error) {
     console.error("Error downloading document:", error);
