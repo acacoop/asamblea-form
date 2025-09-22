@@ -348,7 +348,7 @@ export async function generatePDF(formData: any): Promise<Blob> {
 export async function uploadPDF(
   files: Array<{ blob: Blob; name: string }>,
   cooperativaCode: string
-): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+): Promise<{ success: boolean; files?: Array<{name: string, fileContent: string}>; error?: string }> {
   try {
     // Convert blobs to base64 strings
     const filesData = await Promise.all(
@@ -380,7 +380,7 @@ export async function uploadPDF(
     const result = await response.json();
     return {
       success: true,
-      fileUrl: result.fileUrl || result.url,
+      files: result
     };
   } catch (error) {
     console.error("Error uploading PDF:", error);
@@ -487,7 +487,7 @@ export async function processFormSubmission(): Promise<{
 /**
  * Download the generated document locally (for testing/backup)
  */
-export async function downloadGeneratedDocument(): Promise<void> {
+export async function downloadGeneratedDocument(): Promise<{ success: boolean; files?: Array<{name: string, fileContent: string}>; error?: string }> {
   try {
     const formData = extractFormDataAsJSON();
     const credencialBlob = await generatePDF(formData);
@@ -506,7 +506,8 @@ export async function downloadGeneratedDocument(): Promise<void> {
       });
     }
 
-    uploadPDF(files, formData.cooperativa?.code || "Unknown");
+    const uploadResult = await uploadPDF(files, formData.cooperativa?.code || "Unknown");
+    return uploadResult;
   } catch (error) {
     console.error("Error downloading document:", error);
     throw error;

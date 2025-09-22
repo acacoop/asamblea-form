@@ -125,14 +125,15 @@ export default function Form() {
     try {
       const dataSchema = transformFormDataToSchema();
       await guardarFormulario(dataSchema);
-      const generados: any = await downloadGeneratedDocument();
-      if (Array.isArray(generados)) {
-        setNuevosArchivos(generados.filter(Boolean));
-      } else if (generados !== undefined && generados !== null) {
-        // si se devolvió un único objeto archivo
-        setNuevosArchivos([generados]);
+      const response = await downloadGeneratedDocument();
+      
+      if (response.success && response.files) {
+        setNuevosArchivos(response.files);
+        console.log("Archivos nuevos recibidos:", response.files);
+        setModalAbierto(true);
+      } else {
+        console.error("Error en la respuesta:", response.error);
       }
-      setModalAbierto(true);
     } catch (e) {
       console.error("Error al enviar el formulario:", e);
     } finally {
@@ -141,64 +142,18 @@ export default function Form() {
   };
 
   const handleDownload = async () => {
+    console.log("Iniciando descarga de archivos nuevos...");
     if (descargando) return;
     setDescargando(true);
     try {
-      const dataSchema = transformFormDataToSchema();
-      const respuesta = await guardarFormulario(dataSchema);
-      let archivosResp: any[] = [];
-      if (respuesta) {
-        const candidateKeys = [
-          "archivos",
-          "files",
-          "documentos",
-          "attachments",
-          "nuevosArchivos",
-        ];
-        for (const k of candidateKeys) {
-          const v = (respuesta as any)[k];
-          if (Array.isArray(v) && v.length) {
-            archivosResp = v;
-            break;
-          }
-        }
-
-        if (archivosResp.length === 0) {
-          const nestedContainers = [
-            (respuesta as any).data,
-            (respuesta as any).result,
-            (respuesta as any).payload,
-          ];
-          for (const container of nestedContainers) {
-            if (!container) continue;
-            for (const k of Object.keys(container)) {
-              const v = (container as any)[k];
-              if (Array.isArray(v) && v.length) {
-                archivosResp = v;
-                break;
-              }
-            }
-            if (archivosResp.length) break;
-          }
-        }
-      }
-
-      if (archivosResp.length === 0) {
-        // fallback local (generar y subir)
-        await downloadGeneratedDocument();
-        console.warn(
-          "No se encontraron archivos en la respuesta. Se generaron localmente."
-        );
-      } else {
-        setNuevosArchivos(archivosResp);
-        descargarTodos(archivosResp);
-      }
+      console.log("Archivos a descargar:", nuevosArchivos);
+      await descargarTodos(nuevosArchivos);
     } catch (e) {
-      console.error("Error al obtener / descargar archivos nuevos:", e);
-    } finally {
-      setDescargando(false);
-      setModalAbierto(false);
-    }
+        console.error("Error al obtener / descargar archivos nuevos:", e);
+      } finally {
+        setDescargando(false);
+        setModalAbierto(false);
+      }
   };
 
   useEffect(() => {
