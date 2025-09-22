@@ -9,10 +9,10 @@ import FileStatusBanner from "../../components/FileStatusBanner/FileStatusBanner
 
 import {
   downloadGeneratedDocument,
-  extractFormDataAsJSON,
   transformFormDataToSchema,
 } from "../../utils/formDataExtractor";
 import { guardarFormulario } from "../../services/services";
+import Modal from "../../components/Modal/Modal";
 
 function normalizeCooperativa(raw: any): Cooperativa {
   if (!raw) return { code: "" } as Cooperativa;
@@ -28,30 +28,84 @@ function normalizeCooperativa(raw: any): Cooperativa {
   return mapped;
 }
 
-
-
-const DocumentTestButtons = () => (
-  <div style={{ margin: "20px", textAlign: "center" }}>
-    <button className="button" onClick={async () => {
-        await downloadGeneratedDocument().then((resp) => {
-          console.log("Documento generado:", resp);
-        }).catch((err) => {
-          console.error("Error al generar el documento:", err);
-        });
-        const dataSchema = transformFormDataToSchema();
-        console.log("Datos extraídos para envío:", dataSchema);
-
-        await guardarFormulario(dataSchema).then((resp) => {
-          console.log("Respuesta del servidor:", resp);
-        }).catch((err) => {
-          console.error("Error al enviar el formulario:", err);
-        });
+function descargarTodos(archs: any[]) {
+  archs.forEach((a: any, idx: any) => {
+    try {
+      const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
+      const rawBase64: string | undefined = a.fileContent || a.base64;
+      if (!rawBase64) return;
+      // limpiar posibles saltos de línea / espacios
+      const cleaned = rawBase64.replace(/\s+/g, "");
+      // decodificar base64 a bytes
+      const byteChars = atob(cleaned);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
       }
-      }>
-      Enviar formulario
-    </button>
-  </div>
-);
+      const byteArray = new Uint8Array(byteNumbers);
+      const mime = filename.toLowerCase().endsWith(".pdf")
+        ? "application/pdf"
+        : "application/octet-stream";
+      const blob = new Blob([byteArray], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      // ignorar error individual y continuar con el siguiente
+    }
+  });
+}
+
+function descargarArchivo(a: any, idx: any) {
+  try {
+    const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
+    const rawBase64: string | undefined = a.fileContent || a.base64;
+    if (!rawBase64) return;
+    const cleaned = rawBase64.replace(/\s+/g, "");
+    const byteChars = atob(cleaned);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const mime = filename.toLowerCase().endsWith(".pdf")
+      ? "application/pdf"
+      : "application/octet-stream";
+    const blob = new Blob([byteArray], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (e) {
+    // ignore single download error
+  }
+}
+
+// Botón principal de envío (reemplaza DocumentTestButtons)
+function SubmitButton({
+  onSubmit,
+  loading,
+}: {
+  onSubmit: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div style={{ margin: "20px", textAlign: "center" }}>
+      <button className="button" disabled={loading} onClick={onSubmit}>
+        {loading ? "Enviando..." : "Enviar formulario"}
+      </button>
+    </div>
+  );
+}
 
 export default function Form() {
   const [cooperativaSeleccionada, setCooperativaSeleccionada] =
@@ -60,6 +114,92 @@ export default function Form() {
   const [archivosExistentes, setArchivosExistentes] = useState<any[] | null>(
     null
   );
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [nuevosArchivos, setNuevosArchivos] = useState<any[]>([]);
+  const [descargando, setDescargando] = useState(false);
+
+  const handleEnviarFormulario = async () => {
+    if (enviando) return; // prevenir doble clic
+    setEnviando(true);
+    try {
+      const dataSchema = transformFormDataToSchema();
+      await guardarFormulario(dataSchema);
+      const generados: any = await downloadGeneratedDocument();
+      if (Array.isArray(generados)) {
+        setNuevosArchivos(generados.filter(Boolean));
+      } else if (generados !== undefined && generados !== null) {
+        // si se devolvió un único objeto archivo
+        setNuevosArchivos([generados]);
+      }
+      setModalAbierto(true);
+    } catch (e) {
+      console.error("Error al enviar el formulario:", e);
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (descargando) return;
+    setDescargando(true);
+    try {
+      const dataSchema = transformFormDataToSchema();
+      const respuesta = await guardarFormulario(dataSchema);
+      let archivosResp: any[] = [];
+      if (respuesta) {
+        const candidateKeys = [
+          "archivos",
+          "files",
+          "documentos",
+          "attachments",
+          "nuevosArchivos",
+        ];
+        for (const k of candidateKeys) {
+          const v = (respuesta as any)[k];
+          if (Array.isArray(v) && v.length) {
+            archivosResp = v;
+            break;
+          }
+        }
+
+        if (archivosResp.length === 0) {
+          const nestedContainers = [
+            (respuesta as any).data,
+            (respuesta as any).result,
+            (respuesta as any).payload,
+          ];
+          for (const container of nestedContainers) {
+            if (!container) continue;
+            for (const k of Object.keys(container)) {
+              const v = (container as any)[k];
+              if (Array.isArray(v) && v.length) {
+                archivosResp = v;
+                break;
+              }
+            }
+            if (archivosResp.length) break;
+          }
+        }
+      }
+
+      if (archivosResp.length === 0) {
+        // fallback local (generar y subir)
+        await downloadGeneratedDocument();
+        console.warn(
+          "No se encontraron archivos en la respuesta. Se generaron localmente."
+        );
+      } else {
+        setNuevosArchivos(archivosResp);
+        descargarTodos(archivosResp);
+      }
+    } catch (e) {
+      console.error("Error al obtener / descargar archivos nuevos:", e);
+    } finally {
+      setDescargando(false);
+      setModalAbierto(false);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -171,65 +311,10 @@ export default function Form() {
         archivos={archivosExistentes || []}
         onModify={() => setShowFileStatusBanner(false)}
         onDownload={(archs) => {
-          archs.forEach((a, idx) => {
-            try {
-              const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
-              const rawBase64: string | undefined = a.fileContent || a.base64;
-              if (!rawBase64) return;
-              // limpiar posibles saltos de línea / espacios
-              const cleaned = rawBase64.replace(/\s+/g, "");
-              // decodificar base64 a bytes
-              const byteChars = atob(cleaned);
-              const byteNumbers = new Array(byteChars.length);
-              for (let i = 0; i < byteChars.length; i++) {
-                byteNumbers[i] = byteChars.charCodeAt(i);
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              // intentar detectar tipo (suponemos PDF si nombre termina en .pdf)
-              const mime = filename.toLowerCase().endsWith(".pdf")
-                ? "application/pdf"
-                : "application/octet-stream";
-              const blob = new Blob([byteArray], { type: mime });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = filename;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              setTimeout(() => URL.revokeObjectURL(url), 4000);
-            } catch (e) {
-              // ignorar error individual y continuar con el siguiente
-            }
-          });
+          descargarTodos(archs);
         }}
         onDownloadOne={(a, idx) => {
-          try {
-            const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
-            const rawBase64: string | undefined = a.fileContent || a.base64;
-            if (!rawBase64) return;
-            const cleaned = rawBase64.replace(/\s+/g, "");
-            const byteChars = atob(cleaned);
-            const byteNumbers = new Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) {
-              byteNumbers[i] = byteChars.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const mime = filename.toLowerCase().endsWith(".pdf")
-              ? "application/pdf"
-              : "application/octet-stream";
-            const blob = new Blob([byteArray], { type: mime });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 4000);
-          } catch (e) {
-            // ignore single download error
-          }
+          descargarArchivo(a, idx);
         }}
       />
       <div className="form-container">
@@ -240,7 +325,13 @@ export default function Form() {
           showButton={false}
         >
           <FormGroup cooperativa={cooperativaSeleccionada} />
-          <DocumentTestButtons />
+          <SubmitButton onSubmit={handleEnviarFormulario} loading={enviando} />
+          <Modal
+            open={modalAbierto}
+            onDownload={handleDownload}
+            downloading={descargando}
+            downloadLabel={descargando ? "Generando archivos..." : undefined}
+          />
         </BodyForm>
         <Footer />
       </div>

@@ -116,7 +116,9 @@ export default function FormGroup({ cooperativa }: Props) {
 
   useEffect(() => {
     if (contactoEmail) {
-      persistLists(undefined, undefined, undefined, { correoElectronico: contactoEmail });
+      persistLists(undefined, undefined, undefined, {
+        correoElectronico: contactoEmail,
+      });
     }
   }, [contactoEmail]);
   function persistLists(
@@ -140,7 +142,8 @@ export default function FormGroup({ cooperativa }: Props) {
       }
       if (updatedContacto) {
         parsed.datos.contacto = parsed.datos.contacto ?? {};
-        parsed.datos.contacto.correoElectronico = updatedContacto.correoElectronico;
+        parsed.datos.contacto.correoElectronico =
+          updatedContacto.correoElectronico;
       }
       localStorage.setItem("formExistingData", JSON.stringify(parsed));
       // notify other components in the same window
