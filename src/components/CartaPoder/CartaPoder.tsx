@@ -167,7 +167,7 @@ export default function CartaPoder() {
                     disabled={isDisabled}
                     title={title}
                   >
-                    {t.nombre} {t.documento ? `(${t.documento})` : null}
+                    {t.nombre}
                   </option>
                 );
               })}
@@ -204,7 +204,7 @@ export default function CartaPoder() {
                     disabled={isDisabled}
                     title={title}
                   >
-                    {s.nombre} {s.documento ? `(${s.documento})` : null}
+                    {s.nombre}
                   </option>
                 );
               })}
