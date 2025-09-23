@@ -96,10 +96,41 @@ export default function CartaPoder() {
       return;
     }
 
+    if (patch.poderanteId) {
+      const isApoderadoEnOtra = cartas.some(
+        (c) => c.apoderadoId === patch.poderanteId && c.id !== id
+      );
+      if (isApoderadoEnOtra) {
+        setToastMessage("Un apoderado no puede ser poderdante.");
+        setToastType("error");
+        setToastOpen(true);
+        return;
+      }
+      // Regla: un titular solo puede ceder (ser poderdante) una sola vez
+      const yaCedioSuVoto = cartas.some(
+        (c) => c.poderanteId === patch.poderanteId && c.id !== id
+      );
+      if (yaCedioSuVoto) {
+        setToastMessage("Este titular ya cedió su voto.");
+        setToastType("error");
+        setToastOpen(true);
+        return;
+      }
+    }
+
     if (patch.apoderadoId) {
       const newApoderadoId = patch.apoderadoId;
       if (newApoderadoId === (patch.poderanteId ?? target.poderanteId)) {
         setToastMessage("No puede delegar el poder a sí mismo.");
+        setToastType("error");
+        setToastOpen(true);
+        return;
+      }
+      const esPoderdanteEnOtra = cartas.some(
+        (c) => c.poderanteId === newApoderadoId && c.id !== id
+      );
+      if (esPoderdanteEnOtra) {
+        setToastMessage("Un apoderado no puede ser poderdante.");
         setToastType("error");
         setToastOpen(true);
         return;
@@ -152,8 +183,28 @@ export default function CartaPoder() {
               <option value="">Seleccione un titular</option>
               {titulares.map((t) => {
                 const isSameAsApoderado = t.id === c.apoderadoId;
+                const esApoderadoGlobal = cartas.some(
+                  (ct) => ct.apoderadoId === t.id && ct.id !== c.id
+                );
+                const esPoderdanteEnOtra = cartas.some(
+                  (ct) => ct.poderanteId === t.id && ct.id !== c.id
+                );
+                const disabled =
+                  isSameAsApoderado || esApoderadoGlobal || esPoderdanteEnOtra;
+                const title = isSameAsApoderado
+                  ? "El poderdante no puede ser el mismo apoderado"
+                  : esApoderadoGlobal
+                  ? "No puede ser poderdante porque es apoderado en otra carta"
+                  : esPoderdanteEnOtra
+                  ? "Este titular ya cedió su voto"
+                  : undefined;
                 return (
-                  <option key={t.id} value={t.id} disabled={isSameAsApoderado}>
+                  <option
+                    key={t.id}
+                    value={t.id}
+                    disabled={disabled}
+                    title={title}
+                  >
                     {t.nombre}
                   </option>
                 );
@@ -176,11 +227,18 @@ export default function CartaPoder() {
                 const count = apoderadoCounts[t.id] || 0;
                 const isAlreadyAssignedToThisCarta = t.id === c.apoderadoId;
                 const isSameAsPoderante = t.id === c.poderanteId;
+                const esPoderdanteGlobal = cartas.some(
+                  (ct) => ct.poderanteId === t.id && ct.id !== c.id
+                );
                 const isDisabled =
                   (count >= 2 && !isAlreadyAssignedToThisCarta) ||
-                  isSameAsPoderante;
+                  isSameAsPoderante ||
+                  esPoderdanteGlobal;
                 let title: string | undefined;
                 if (isSameAsPoderante) title = "No puede delegar a sí mismo";
+                else if (esPoderdanteGlobal)
+                  title =
+                    "No puede ser apoderado porque es poderdante en otra carta";
                 else if (count >= 2 && !isAlreadyAssignedToThisCarta)
                   title = "Este titular ya recibió 2 delegaciones";
                 return (
