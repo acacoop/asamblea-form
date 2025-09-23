@@ -18,7 +18,6 @@ function readFormExisting() {
 
 export default function CartaPoder() {
   const [titulares, setTitulares] = useState<Person[]>([]);
-  const [suplentes, setSuplentes] = useState<Person[]>([]);
   const [cartas, setCartas] = useState<Carta[]>([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -40,7 +39,6 @@ export default function CartaPoder() {
         return [];
       };
       const rawTit = parse(datos.titulares ?? parsed?.titulares);
-      const rawSup = parse(datos.suplentes ?? parsed?.suplentes);
       const norm = (arr: any[]) =>
         arr.map((it) => ({
           id: it.id ?? it.ID ?? Math.random().toString(36).slice(2, 10),
@@ -49,7 +47,6 @@ export default function CartaPoder() {
           documento: it.documento ?? it.document ?? undefined,
         }));
       setTitulares(norm(rawTit));
-      setSuplentes(norm(rawSup));
 
       const rawCartas = parse(datos.cartasPoder ?? parsed?.cartasPoder);
       setCartas(Array.isArray(rawCartas) ? rawCartas : []);
@@ -89,33 +86,33 @@ export default function CartaPoder() {
   }
 
   function updateCarta(id: string, patch: Partial<Carta>) {
-    // validate apoderado assignment
     const target = cartas.find((c) => c.id === id);
     if (!target) return;
 
-    // if patch contains apoderadoId, check limits
+    // If updating poderante, prevent same as apoderado in same carta
+    if (patch.poderanteId && patch.poderanteId === target.apoderadoId) {
+      setToastMessage("El poderdante no puede ser el mismo que el apoderado.");
+      setToastType("error");
+      setToastOpen(true);
+      return;
+    }
+
+    // If updating apoderado, enforce rules
     if (patch.apoderadoId) {
       const newApoderadoId = patch.apoderadoId;
-      // count current assignments excluding this carta
-      const count = cartas.reduce((acc, cur) => {
-        if (cur.id === id) return acc;
-        if (cur.apoderadoId === newApoderadoId) return acc + 1;
-        return acc;
-      }, 0);
-
-      // cannot be apoderado if selected as poderante in any carta
-      const isPoderante = cartas.some((c) => c.poderanteId === newApoderadoId);
-      if (isPoderante) {
-        setToastMessage("Un apoderado no puede ser poderdante.");
+      if (newApoderadoId === (patch.poderanteId ?? target.poderanteId)) {
+        setToastMessage("No puede delegar el poder a sí mismo.");
         setToastType("error");
         setToastOpen(true);
         return;
       }
-
+      const count = cartas.reduce((acc, cur) => {
+        if (cur.id === id) return acc; // exclude current carta
+        if (cur.apoderadoId === newApoderadoId) return acc + 1;
+        return acc;
+      }, 0);
       if (count >= 2) {
-        setToastMessage(
-          "Este apoderado ya tiene 2 cartas, no puede recibir más."
-        );
+        setToastMessage("Este titular ya recibió 2 delegaciones.");
         setToastType("error");
         setToastOpen(true);
         return;
@@ -133,7 +130,7 @@ export default function CartaPoder() {
     }
     return acc;
   }, {} as Record<string, number>);
-  const apoderadosSet = new Set(Object.keys(apoderadoCounts));
+  // For poderante select we no longer disable titulares that are apoderados elsewhere.
 
   return (
     <div className="carta-poder">
@@ -146,7 +143,9 @@ export default function CartaPoder() {
       {cartas.map((c) => (
         <div key={c.id} className="add-item">
           <div className="campo">
-            <label className="input-label">Poderdante (quien delega):</label>
+            <label className="input-label">
+              Poderdante (titular que delega):
+            </label>
             <select
               className="input-select"
               value={c.poderanteId ?? ""}
@@ -156,10 +155,38 @@ export default function CartaPoder() {
             >
               <option value="">Seleccione un titular</option>
               {titulares.map((t) => {
-                const isDisabled = apoderadosSet.has(t.id);
-                const title = isDisabled
-                  ? "No puede ser poderdante porque está designado como apoderado"
-                  : undefined;
+                const isSameAsApoderado = t.id === c.apoderadoId;
+                return (
+                  <option key={t.id} value={t.id} disabled={isSameAsApoderado}>
+                    {t.nombre}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div className="campo">
+            <label className="input-label">
+              Apoderado (titular que recibe):
+            </label>
+            <select
+              className="input-select"
+              value={c.apoderadoId ?? ""}
+              onChange={(e) =>
+                updateCarta(c.id, { apoderadoId: e.target.value })
+              }
+            >
+              <option value="">Seleccione un titular</option>
+              {titulares.map((t) => {
+                const count = apoderadoCounts[t.id] || 0;
+                const isAlreadyAssignedToThisCarta = t.id === c.apoderadoId;
+                const isSameAsPoderante = t.id === c.poderanteId;
+                const isDisabled =
+                  (count >= 2 && !isAlreadyAssignedToThisCarta) ||
+                  isSameAsPoderante;
+                let title: string | undefined;
+                if (isSameAsPoderante) title = "No puede delegar a sí mismo";
+                else if (count >= 2 && !isAlreadyAssignedToThisCarta)
+                  title = "Este titular ya recibió 2 delegaciones";
                 return (
                   <option
                     key={t.id}
@@ -168,43 +195,6 @@ export default function CartaPoder() {
                     title={title}
                   >
                     {t.nombre}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          <div className="campo">
-            <label className="input-label">Apoderado (quien recibe):</label>
-            <select
-              className="input-select"
-              value={c.apoderadoId ?? ""}
-              onChange={(e) =>
-                updateCarta(c.id, { apoderadoId: e.target.value })
-              }
-            >
-              <option value="">Seleccione un suplente</option>
-              {suplentes.map((s) => {
-                const count = apoderadoCounts[s.id] || 0;
-                const isAlreadyAssignedToThisCarta = s.id === c.apoderadoId;
-                const isSameAsPoderante = s.id === c.poderanteId;
-                const isDisabled =
-                  (count >= 2 && !isAlreadyAssignedToThisCarta) ||
-                  isSameAsPoderante;
-                let title: string | undefined;
-                if (isSameAsPoderante)
-                  title = "No puede ser apoderado y poderdante al mismo tiempo";
-                else if (count >= 2 && !isAlreadyAssignedToThisCarta)
-                  title =
-                    "Este apoderado ya tiene 2 cartas, no puede recibir más";
-
-                return (
-                  <option
-                    key={s.id}
-                    value={s.id}
-                    disabled={isDisabled}
-                    title={title}
-                  >
-                    {s.nombre}
                   </option>
                 );
               })}
