@@ -34,9 +34,7 @@ function descargarTodos(archs: any[]) {
       const filename = a.name || a.nombre || `archivo_${idx + 1}.pdf`;
       const rawBase64: string | undefined = a.fileContent || a.base64;
       if (!rawBase64) return;
-      // limpiar posibles saltos de línea / espacios
       const cleaned = rawBase64.replace(/\s+/g, "");
-      // decodificar base64 a bytes
       const byteChars = atob(cleaned);
       const byteNumbers = new Array(byteChars.length);
       for (let i = 0; i < byteChars.length; i++) {
@@ -55,9 +53,7 @@ function descargarTodos(archs: any[]) {
       link.click();
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 4000);
-    } catch (e) {
-      // ignorar error individual y continuar con el siguiente
-    }
+    } catch (e) {}
   });
 }
 
@@ -90,7 +86,6 @@ function descargarArchivo(a: any, idx: any) {
   }
 }
 
-// Botón principal de envío (reemplaza DocumentTestButtons)
 function SubmitButton({
   onSubmit,
   loading,
@@ -120,13 +115,13 @@ export default function Form() {
   const [descargando, setDescargando] = useState(false);
 
   const handleEnviarFormulario = async () => {
-    if (enviando) return; // prevenir doble clic
+    if (enviando) return;
     setEnviando(true);
     try {
       const dataSchema = transformFormDataToSchema();
       await guardarFormulario(dataSchema);
       const response = await downloadGeneratedDocument();
-      
+
       if (response.success && response.files) {
         setNuevosArchivos(response.files);
         console.log("Archivos nuevos recibidos:", response.files);
@@ -149,11 +144,11 @@ export default function Form() {
       console.log("Archivos a descargar:", nuevosArchivos);
       await descargarTodos(nuevosArchivos);
     } catch (e) {
-        console.error("Error al obtener / descargar archivos nuevos:", e);
-      } finally {
-        setDescargando(false);
-        setModalAbierto(false);
-      }
+      console.error("Error al obtener / descargar archivos nuevos:", e);
+    } finally {
+      setDescargando(false);
+      setModalAbierto(false);
+    }
   };
 
   useEffect(() => {
@@ -186,16 +181,14 @@ export default function Form() {
       if (rawForm) {
         const parsedForm = JSON.parse(rawForm);
 
-        // Detectar la existencia de un array de archivos (>0) para decidir si mostrar el banner
         function extractArchivosArray(obj: any): any[] | null {
           if (!obj || typeof obj !== "object") return null;
-          // claves candidatas
+
           const candidates = ["archivos", "files", "documentos", "attachments"];
           for (const key of candidates) {
             const val = (obj as any)[key];
             if (Array.isArray(val)) return val;
           }
-          // buscar dentro de datos si existe
           if (obj.datos) {
             for (const key of candidates) {
               const val = obj.datos[key];
@@ -215,7 +208,6 @@ export default function Form() {
         }
         const coopFromForm =
           findPossibleCooperativa(parsedForm) ?? parsedForm?.datos ?? null;
-        // If parsedForm provides datos but no cooperativa fields, try to merge with local 'cooperativa'
         if (
           coopFromForm &&
           (coopFromForm.codigo ||
@@ -228,20 +220,17 @@ export default function Form() {
           return;
         }
 
-        // parsedForm has datos but lacks cooperative identification; try to take lightweight coop saved at auth
         const rawCoopFallback = localStorage.getItem("cooperativa");
         if (rawCoopFallback) {
           try {
             const parsedLocalCoop = JSON.parse(rawCoopFallback);
             const normLocal = normalizeCooperativa(parsedLocalCoop);
-            // merge: local coop provides code/name, datos may still provide other metadata
             const merged = { ...normLocal, ...(coopFromForm || {}) } as any;
             setCooperativaSeleccionada(normalizeCooperativa(merged));
             return;
           } catch (err) {}
         }
 
-        // as a last resort, try to use coopFromForm directly
         if (coopFromForm) {
           setCooperativaSeleccionada(normalizeCooperativa(coopFromForm));
           return;

@@ -49,7 +49,6 @@ const BodyForm: React.FC<BodyFormProps> = ({
         </>
       )}
 
-      {/* Renderizar cualquier contenido pasado como children */}
       {children}
 
       {showButton && (

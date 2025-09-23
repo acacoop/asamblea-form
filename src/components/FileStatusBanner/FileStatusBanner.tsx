@@ -59,7 +59,7 @@ export default function FileStatusBanner({
         if (rawForm) {
           const parsedForm = JSON.parse(rawForm);
           const datos = parsedForm.datos || {};
-          // intentar distintas claves
+
           name =
             datos.name ||
             datos.nombre ||

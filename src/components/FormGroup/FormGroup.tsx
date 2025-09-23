@@ -8,7 +8,7 @@ import CartaPoder from "../CartaPoder/CartaPoder";
 import type { Cooperativa } from "../../types/types";
 
 type Props = {
-  cooperativa?: Cooperativa | null; // <- recibimos la coop autenticada
+  cooperativa?: Cooperativa | null;
 };
 
 export default function FormGroup({ cooperativa }: Props) {
@@ -21,7 +21,6 @@ export default function FormGroup({ cooperativa }: Props) {
   const [presidente, setPresidente] = useState<string>("");
   const [contactoEmail, setContactoEmail] = useState<string>("");
 
-  // titulares & suplentes
   const [titulares, setTitulares] = useState<
     Array<{ id: string; nombre: string; documento?: string }>
   >([]);
@@ -29,13 +28,11 @@ export default function FormGroup({ cooperativa }: Props) {
     Array<{ id: string; nombre: string; documento?: string }>
   >([]);
 
-  // control showing an AddItem empty form when user clicks "Agregar"
   const [showAddFor, setShowAddFor] = useState<null | "titular" | "suplente">(
     null
   );
   const [showCarta, setShowCarta] = useState(false);
 
-  // Precarga cuando llega/actualiza la cooperativa (post autenticación)
   useEffect(() => {
     if (!cooperativa) return;
 
@@ -57,7 +54,6 @@ export default function FormGroup({ cooperativa }: Props) {
         : ""
     );
 
-    // Autoridades y contacto (pueden venir desde formExistingData.datos)
     const autoridades =
       (cooperativa as any).autoridades ??
       (cooperativa as any).autoridad ??
@@ -69,7 +65,6 @@ export default function FormGroup({ cooperativa }: Props) {
       (cooperativa as any).contacto ?? (cooperativa as any).contact ?? null;
     setContactoEmail(contacto?.correoElectronico ?? contacto?.email ?? "");
 
-    // parse posibles titulares/suplentes desde cooperativa.datos o cooperativa
     const datos = (cooperativa as any).datos ?? (cooperativa as any);
 
     function parseArrayField(field: any) {
@@ -78,9 +73,7 @@ export default function FormGroup({ cooperativa }: Props) {
       try {
         const parsed = JSON.parse(field);
         if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        // fallthrough
-      }
+      } catch (e) {}
       return [];
     }
 
@@ -107,7 +100,6 @@ export default function FormGroup({ cooperativa }: Props) {
     setSuplentesArr(normalize(rawSuplentes));
   }, [cooperativa]);
 
-  // Persist autoridades and contacto when they change
   useEffect(() => {
     if (secretario || presidente) {
       persistLists(undefined, undefined, { presidente, secretario }, undefined);
@@ -146,17 +138,12 @@ export default function FormGroup({ cooperativa }: Props) {
           updatedContacto.correoElectronico;
       }
       localStorage.setItem("formExistingData", JSON.stringify(parsed));
-      // notify other components in the same window
       try {
         window.dispatchEvent(
           new CustomEvent("formExistingDataChanged", { detail: parsed })
         );
-      } catch (e) {
-        // ignore
-      }
-    } catch (e) {
-      // ignore
-    }
+      } catch (e) {}
+    } catch (e) {}
   }
 
   function handleAddItemTo(

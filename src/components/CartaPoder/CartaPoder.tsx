@@ -89,7 +89,6 @@ export default function CartaPoder() {
     const target = cartas.find((c) => c.id === id);
     if (!target) return;
 
-    // If updating poderante, prevent same as apoderado in same carta
     if (patch.poderanteId && patch.poderanteId === target.apoderadoId) {
       setToastMessage("El poderdante no puede ser el mismo que el apoderado.");
       setToastType("error");
@@ -97,7 +96,6 @@ export default function CartaPoder() {
       return;
     }
 
-    // If updating apoderado, enforce rules
     if (patch.apoderadoId) {
       const newApoderadoId = patch.apoderadoId;
       if (newApoderadoId === (patch.poderanteId ?? target.poderanteId)) {
@@ -107,7 +105,7 @@ export default function CartaPoder() {
         return;
       }
       const count = cartas.reduce((acc, cur) => {
-        if (cur.id === id) return acc; // exclude current carta
+        if (cur.id === id) return acc;
         if (cur.apoderadoId === newApoderadoId) return acc + 1;
         return acc;
       }, 0);
@@ -123,14 +121,12 @@ export default function CartaPoder() {
     persistCartas(next);
   }
 
-  // compute how many cartas tiene cada apoderado
   const apoderadoCounts: Record<string, number> = cartas.reduce((acc, cur) => {
     if (cur.apoderadoId) {
       acc[cur.apoderadoId] = (acc[cur.apoderadoId] || 0) + 1;
     }
     return acc;
   }, {} as Record<string, number>);
-  // For poderante select we no longer disable titulares that are apoderados elsewhere.
 
   return (
     <div className="carta-poder">
