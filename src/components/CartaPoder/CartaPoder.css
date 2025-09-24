@@ -67,3 +67,11 @@
   border-radius: 20px;
   cursor: pointer;
 }
+
+.carta-row .remove:hover {
+  background: var(--error-red-dark);
+}
+
+.add-item .actions .add-item-button:hover {
+  background-color: var(--error-red-dark) !important;
+}
