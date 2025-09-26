@@ -18,7 +18,7 @@ src/
 ├── components/
 │   ├── AddItem/
 │   │   ├── AddItem.tsx
-   │   └── AddItem.css
+│   │   └── AddItem.css
 │   ├── AccessToForm/
 │   │   ├── AccessToForm.tsx
 │   │   └── AccessToForm.css
