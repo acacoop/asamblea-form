@@ -1,4 +1,4 @@
-import Logo from "../../assets/logo.png";
+import Logo from "../../assets/logo.webp";
 import { useNavigate } from "react-router-dom";
 import "./HeaderForm.css";
 
@@ -21,9 +21,6 @@ export default function HeaderForm({
       )}
       <div className="logo-container">
         <img src={Logo} alt="Logo" className="logo" />
-        <h2 className="logo-text">
-          Asociación de Cooperativas Argentinas C.L.
-        </h2>
       </div>
       <div className="container-title-form">
         <h1 className="title-form">{titleForm}</h1>
