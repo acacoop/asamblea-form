@@ -78,7 +78,7 @@ Scripts útiles:
 - `npm run dev` — inicia Vite en modo desarrollo
 - `npm run build` — compila TypeScript y genera `dist`
 - `npm run preview` — vista previa de `dist`
-- `npm run lint` — ejecuta ESLint
+- `npm run deploy` — ejecuta el deploy en github Pages
 
 ## Comportamientos importantes del fork
 
