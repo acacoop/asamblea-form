@@ -97,10 +97,6 @@ Scripts útiles:
 - Persistencia: `CartaPoder` usa `persistCartas` para actualizar `localStorage`. Considera validar y migrar datos si introduces cambios en la forma almacenada.
 - UI: los botones y estilos están en `src/components/Button` y `src/components/CartaPoder/CartaPoder.css`.
 
-Contacto
-
-Miguel Miguez — mmiguez@acacoop.com.ar
-
 ## Licencia
 
 Todos los derechos reservados.  
@@ -110,3 +106,4 @@ No está permitido copiar, distribuir ni modificar fuera de la organización.
 ## Autor / Contacto
 
 Miguel Miguez, mmiguez@acacoop.com.ar
+Manuel Regiardo, mregiardo@acacoop.com.ar
