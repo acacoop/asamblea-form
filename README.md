@@ -103,5 +103,5 @@ No está permitido copiar, distribuir ni modificar fuera de la organización.
 
 ## Autor / Contacto
 
-Miguel Miguez, mmiguez@acacoop.com.ar
-Manuel Regiardo, mregiardo@acacoop.com.ar
+- Miguel Miguez, mmiguez@acacoop.com.ar
+- Manuel Regiardo, mregiardo@acacoop.com.ar
