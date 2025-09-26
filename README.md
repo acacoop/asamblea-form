@@ -65,8 +65,6 @@ http://localhost:5173/ (por defecto en Vite)
 
 ## Uso / Notas rápidas
 
-- Modificar `src/data/example.csv` para pruebas locales si lo deseas.
-- Para probar cartas de poder: carga titulares (por CSV o desde la cooperativa pre-cargada) y abre la sección "Cartas de poder" en el formulario.
 - Si el banner de archivos aparece, puedes descargar PDFs / archivos base64 desde el `FileStatusBanner`.
 
 ## Dependencias y scripts
