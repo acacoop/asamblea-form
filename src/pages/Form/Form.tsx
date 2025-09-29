@@ -13,6 +13,7 @@ import {
 } from "../../utils/formDataExtractor";
 import { guardarFormulario } from "../../services/services";
 import Modal from "../../components/Modal/Modal";
+import NotificationToast from "../../components/NotificationToast/NotificationToast";
 
 function normalizeCooperativa(raw: any): Cooperativa {
   if (!raw) return { code: "" } as Cooperativa;
@@ -113,24 +114,78 @@ export default function Form() {
   const [enviando, setEnviando] = useState(false);
   const [nuevosArchivos, setNuevosArchivos] = useState<any[]>([]);
   const [descargando, setDescargando] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
 
   const handleEnviarFormulario = async () => {
     if (enviando) return;
+
+    setToastMessage("Generando archivos...");
+    setToastType("info");
+    setToastOpen(true);
+
     setEnviando(true);
     try {
       const dataSchema = transformFormDataToSchema();
+
+      const errors = [];
+    
+    if (!dataSchema.titulares || dataSchema.titulares.length === 0) {
+      errors.push("Titulares");
+    }
+ 
+    if (!dataSchema.cartasPoder || dataSchema.cartasPoder.length != (dataSchema.titulares.length - 1)) {
+      errors.push("Cartas Poder");
+    } else {
+    // Check if all cartas poder have both poderanteId and apoderadoId
+      const incompleteCartas = dataSchema.cartasPoder.filter(
+        (carta: any) => !carta.poderanteId || !carta.apoderadoId
+      );
+      if (incompleteCartas.length > 0) {
+        errors.push("Cartas Poder (debe seleccionar poderdante y apoderado para todas las cartas)");
+      }
+    }
+    
+    if (!dataSchema.autoridades?.presidente || dataSchema.autoridades.presidente.trim() === "") {
+      errors.push("Presidente");
+    }
+    
+    if (!dataSchema.autoridades?.secretario || dataSchema.autoridades.secretario.trim() === "") {
+      errors.push("Secretario");
+    }
+    
+    if (errors.length > 0) {
+      setToastMessage(`Los siguientes campos son obligatorios: ${errors.join(", ")}`);
+      setToastType("error");
+      setToastOpen(true);
+      setEnviando(false);
+      return;
+    }
+
       await guardarFormulario(dataSchema);
       const response = await downloadGeneratedDocument();
 
       if (response.success && response.files) {
         setNuevosArchivos(response.files);
         console.log("Archivos nuevos recibidos:", response.files);
+        setToastMessage("Archivos generados con éxito.");
+        setToastType("success");
+        setToastOpen(true);
         setModalAbierto(true);
       } else {
         console.error("Error en la respuesta:", response.error);
+        setToastMessage("Error al generar archivos.");
+        setToastType("error");
+        setToastOpen(true);
       }
     } catch (e) {
       console.error("Error al enviar el formulario:", e);
+      setToastMessage("Error al generar archivos.");
+      setToastType("error");
+      setToastOpen(true);
     } finally {
       setEnviando(false);
     }
@@ -138,6 +193,9 @@ export default function Form() {
 
   const handleDownload = async () => {
     console.log("Iniciando descarga de archivos nuevos...");
+    setToastMessage("Descargando archivos...");
+    setToastType("info");
+    setToastOpen(true);
     if (descargando) return;
     setDescargando(true);
     try {
@@ -145,7 +203,13 @@ export default function Form() {
       await descargarTodos(nuevosArchivos);
     } catch (e) {
       console.error("Error al obtener / descargar archivos nuevos:", e);
+      setToastMessage("Error al descargar archivos.");
+      setToastType("error");
+      setToastOpen(true);
     } finally {
+      setToastMessage("Archivos descargados con éxito.");
+      setToastType("success");
+      setToastOpen(true);
       setDescargando(false);
       setModalAbierto(false);
     }
@@ -264,7 +328,7 @@ export default function Form() {
       <div className="form-container">
         <HeaderForm titleForm="Registro de Votación" showButtonBack={true} />
         <BodyForm
-          introText="Complete el siguiente formulario con sus datos personales. Los campos marcados con asterisco (*) son obligatorios."
+          introText="Complete el siguiente formulario. Los campos marcados con asterisco (*) son obligatorios."
           showCards={false}
           showButton={false}
         >
@@ -277,6 +341,13 @@ export default function Form() {
             downloadLabel={descargando ? "Generando archivos..." : undefined}
           />
         </BodyForm>
+        <NotificationToast
+                message={toastMessage}
+                type={toastType}
+                isOpen={toastOpen}
+                onClose={() => setToastOpen(false)}
+                duration={8000}
+              />
         <Footer />
       </div>
     </div>

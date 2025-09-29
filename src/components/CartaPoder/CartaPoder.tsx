@@ -75,6 +75,30 @@ export default function CartaPoder() {
   }
 
   function addCarta() {
+    const maxCartas = Math.max(0, titulares.length - 1);
+  
+    if (maxCartas === 0) {
+      setToastMessage("Debe cargar al menos 2 titulares para crear cartas poder.");
+      setToastType("error");
+      setToastOpen(true);
+      return;
+    }
+
+    if (cartas.length >= maxCartas) {
+      setToastMessage(`Solo se pueden crear máximo ${maxCartas} cartas poder con ${titulares.length} titulares cargados.`);
+      setToastType("error");
+      setToastOpen(true);
+      return;
+    }
+
+    const incompleteCarta = cartas.find(carta => !carta.poderanteId || !carta.apoderadoId);
+    if (incompleteCarta) {
+      setToastMessage("Debe completar todas las cartas poder existentes antes de agregar una nueva.");
+      setToastType("error");
+      setToastOpen(true);
+      return;
+    }
+
     const id = Math.random().toString(36).slice(2, 10);
     const next = [...cartas, { id }];
     persistCartas(next);

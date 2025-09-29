@@ -10,6 +10,11 @@
   margin: 20px 0;
 }
 
+.input-error {
+  border: 2px solid #ff4444 !important;
+  background-color: #fff5f5;
+}
+
 .add-item-fields {
   display: flex;
   align-items: center;
