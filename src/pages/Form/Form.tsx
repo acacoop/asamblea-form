@@ -133,41 +133,36 @@ export default function Form() {
 
       const errors = [];
     
-    if (!dataSchema.titulares || dataSchema.titulares.length === 0) {
-      errors.push("Titulares");
-    }
- 
-    if (!dataSchema.cartasPoder || dataSchema.cartasPoder.length != (dataSchema.titulares.length - 1)) {
-      errors.push("Cartas Poder");
-    } else {
-    // Check if all cartas poder have both poderanteId and apoderadoId
+      if (!dataSchema.titulares || dataSchema.titulares.length === 0) {
+        errors.push("Titulares");
+      }
+
       const incompleteCartas = dataSchema.cartasPoder.filter(
         (carta: any) => !carta.poderanteId || !carta.apoderadoId
       );
       if (incompleteCartas.length > 0) {
         errors.push("Cartas Poder (debe seleccionar poderdante y apoderado para todas las cartas)");
       }
-    }
-    
-    if (!dataSchema.autoridades?.presidente || dataSchema.autoridades.presidente.trim() === "") {
-      errors.push("Presidente");
-    }
-    
-    if (!dataSchema.autoridades?.secretario || dataSchema.autoridades.secretario.trim() === "") {
-      errors.push("Secretario");
-    }
-    
-    if (errors.length > 0) {
-      setToastMessage(`Los siguientes campos son obligatorios: ${errors.join(", ")}`);
-      setToastType("error");
-      setToastOpen(true);
-      setEnviando(false);
-      return;
-    }
+
+      if (!dataSchema.autoridades?.presidente || dataSchema.autoridades.presidente.trim() === "") {
+        errors.push("Presidente");
+      }
+
+      if (!dataSchema.autoridades?.secretario || dataSchema.autoridades.secretario.trim() === "") {
+        errors.push("Secretario");
+      }
+
+      if (errors.length > 0) {
+        setToastMessage(`Los siguientes campos son obligatorios: ${errors.join(", ")}`);
+        setToastType("error");
+        setToastOpen(true);
+        setEnviando(false);
+        return;
+      }
 
       await guardarFormulario(dataSchema);
       const response = await downloadGeneratedDocument();
-
+  
       if (response.success && response.files) {
         setNuevosArchivos(response.files);
         console.log("Archivos nuevos recibidos:", response.files);

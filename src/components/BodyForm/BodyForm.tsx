@@ -31,19 +31,26 @@ const BodyForm: React.FC<BodyFormProps> = ({
         <>
           <Card
             title="📅 Fecha de la Asamblea"
-            description="27 de Octubre de 2025"
+            description="31 de Octubre de 2025"
           />
           <Card
             title="📋 Descripción"
-            description="Documentación para nominar delegados con derecho a voto en la Asamblea General Ordinaria de la Asociación de Cooperativas Argentinas Coop. Ltda."
+            description="Documentación para nominar delegados con derecho a voto en la Asamblea General Ordinaria de la Asociación de Cooperativas Argentinas Coop. Ltda. Permite registrar a los delegados titulares y suplentes, así como las cartas poder correspondientes.
+
+Tener en cuenta: Un delegado puede votar por sí mismo, y representar por poder hasta dos delegados más. Todos deben estar nominados en la Credencial."
           />
           <Card
             title="🔐 Acceso Seguro"
-            description="Para acceder al formulario, ingrese el código de su cooperativa y el código verificador proporcionado. Este sistema garantiza que solo personal autorizado pueda registrar los datos de cada cooperativa."
+            description="Para acceder al formulario, ingrese el CÓDIGO DE COOPERATIVA ACA y el código verificador proporcionado. Este sistema garantiza que solo personal autorizado pueda registrar los datos de cada cooperativa."
           />
           <Card
             title="ℹ️ Información Importante"
-            description="Esta documentación permitirá registrar a los delegados titulares y suplentes que representarán a su cooperativa en la asamblea, así como las cartas poder correspondientes. Asegúrese de completar toda la información requerida y verificar los datos antes de enviar el formulario."
+            description={
+              <>
+                Esta documentación permitirá registrar a los delegados titulares y suplentes que representarán a su cooperativa en la asamblea, así como las cartas poder correspondientes. Asegúrese de completar toda la información requerida y verificar los datos antes de enviar el formulario. Por consultas dirigirse a{" "}
+                <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2025&body=Hola, tengo una consulta sobre la Asamblea 2025.">asamblea@acacoop.com.ar</a>
+              </>
+            }
           />
           {showAccessForm && <AccessToForm />}
         </>

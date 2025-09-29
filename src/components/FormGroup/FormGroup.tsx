@@ -224,10 +224,9 @@ export default function FormGroup({ cooperativa }: Props) {
 
       {(secretario || presidente || contactoEmail) && (
         <div className="notice">
-          <h3>✏️ Editando registro existente</h3>
+          <h3>✏️ Datos del formulario</h3>
           <p>
-            Se han cargado los datos previamente guardados. Puede modificarlos y
-            guardar nuevamente.
+            Complete o modifique la información según corresponda. Los datos se guardarán automáticamente.
           </p>
         </div>
       )}
@@ -260,7 +259,7 @@ export default function FormGroup({ cooperativa }: Props) {
           onChange={(v) => setContactoEmail(String(v))}
         />
         <p className="help-text">
-          Se enviará toda la información de la votación a esta dirección
+          Ante cualquier problema con el formulario, nos comunicaremos a este correo.
         </p>
       </div>
 
@@ -338,7 +337,7 @@ export default function FormGroup({ cooperativa }: Props) {
       <div className="form-group">
         <h2 className="title-form-group">Cartas Poder</h2>
         <p className="help-text">
-          Un apoderado puede recibir hasta 2 cartas de poder.
+          Un delegado puede representar por poder hasta dos delegados.
         </p>
         <CartaPoder />
 

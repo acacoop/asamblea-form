@@ -237,7 +237,7 @@ export default function CartaPoder() {
           </div>
           <div className="campo">
             <label className="input-label">
-              Apoderado (titular que recibe):
+              Apoderado (titular que recibe poder):
             </label>
             <select
               className="input-select"

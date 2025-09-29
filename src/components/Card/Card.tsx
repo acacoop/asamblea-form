@@ -2,9 +2,9 @@ import "./Card.css";
 
 type CardProps = {
   title: string;
-  description: string;
-  description2?: string;
-  description3?: string;
+  description: string | React.ReactNode;
+  description2?: string | React.ReactNode;
+  description3?: string | React.ReactNode;
 };
 
 export default function Card({ title, description }: CardProps) {
