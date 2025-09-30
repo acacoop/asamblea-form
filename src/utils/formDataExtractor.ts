@@ -266,9 +266,9 @@ export async function generateCartaPoderPDF(formData: any): Promise<Blob> {
 
       console.log("Generating carta poder with data:", templateData);
 
-      var fileName = `Asamblea_2025_${
+      var fileName = `Asamblea ACA CL 2025 - ${
         formData.cooperativa?.code || "Unknown"
-      }-CartaPoder_${poderante.nombre || "SinNombre"}.docx`;
+      } - CartaPoder - ${poderante.nombre || "SinNombre"}.docx`;
       // Create a new docxtemplater instance for each carta
       const zip = new PizZip(templateBuffer);
       const doc = new Docxtemplater(zip, {
@@ -504,7 +504,7 @@ export async function processFormSubmission(): Promise<{
 
     // Step 3: Create filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-    const fileName = `Asamblea_2025_${formData.cooperativa.code}_${timestamp}.docx`;
+    const fileName = `Asamblea ACA CL 2025 - ${formData.cooperativa.code} - ${timestamp}.docx`;
 
     const files = [{ blob: pdfBlob, name: fileName }]; // Include carta poder as second file
 
@@ -534,9 +534,9 @@ export async function downloadGeneratedDocument(): Promise<{
     const credencialBlob = await generatePDF(formData);
     const cartasPoderBlobs = await generateCartaPoderPDF(formData);
 
-    const fileName = `Asamblea_2025_${
+    const fileName = `Asamblea ACA CL 2025 - ${
       formData.cooperativa?.code || "Unknown"
-    }-Credencial.docx`;
+    } - Credencial.docx`;
 
     const files: { blob: Blob; name: string }[] = [];
 
