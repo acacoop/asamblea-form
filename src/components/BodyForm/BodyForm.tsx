@@ -41,13 +41,13 @@ Tener en cuenta: Un delegado puede votar por sí mismo, y representar por poder 
           />
           <Card
             title="🔐 Acceso Seguro"
-            description="Para acceder al formulario, ingrese el CÓDIGO DE COOPERATIVA ACA y el código verificador proporcionado. Este sistema garantiza que solo personal autorizado pueda registrar los datos de cada cooperativa."
+            description="Para acceder al formulario, ingrese el Código de Cooperativa ACA y el código verificador proporcionado. Este sistema garantiza que solo personal autorizado pueda registrar los datos de cada cooperativa."
           />
           <Card
             title="ℹ️ Información Importante"
             description={
               <>
-                Esta documentación permitirá registrar a los delegados titulares y suplentes que representarán a su cooperativa en la asamblea, así como las cartas poder correspondientes. Asegúrese de completar toda la información requerida y verificar los datos antes de enviar el formulario. Por consultas dirigirse a{" "}
+                Asegúrese de completar toda la información requerida y verificar los datos antes de enviar el formulario. Por consultas dirigirse a{" "}
                 <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2025&body=Hola, tengo una consulta sobre la Asamblea 2025.">asamblea@acacoop.com.ar</a>
               </>
             }

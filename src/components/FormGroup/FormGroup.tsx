@@ -14,7 +14,6 @@ type Props = {
 export default function FormGroup({ cooperativa }: Props) {
   const [coopNombre, setCoopNombre] = useState<string>("");
   const [codigo, setCodigo] = useState<string>("");
-  const [carTexto, setCarTexto] = useState<string>("");
   const [votos, setVotos] = useState<number | "">("");
 
   const [secretario, setSecretario] = useState<string>("");
@@ -38,13 +37,6 @@ export default function FormGroup({ cooperativa }: Props) {
 
     setCoopNombre(cooperativa.name ?? "");
     setCodigo(cooperativa.code ?? "");
-
-    const car = cooperativa.CAR ?? "";
-    const carNombre = (cooperativa as any)["CAR Nombre"] ?? "";
-    const carLabel = car
-      ? `CAR ${car}${carNombre ? ` - ${carNombre}` : ""}`
-      : "";
-    setCarTexto(String(carLabel));
 
     setVotos(
       typeof cooperativa.votes === "number"
@@ -212,7 +204,6 @@ export default function FormGroup({ cooperativa }: Props) {
           readOnly
         />
         <Input label="Código:" name="codigo" value={codigo} readOnly />
-        <Input label="CAR:" name="car" value={carTexto} readOnly />
         <Input
           label="Votos:"
           name="votos"
