@@ -14,38 +14,12 @@ export default function Metrics() {
   const [filtro, setFiltro] = useState<"todas" | "completas" | "incompletas">("todas");
   const [busqueda, setBusqueda] = useState("");
 
-  // Verificar autenticación al cargar el componente
-  useEffect(() => {
-    const authToken = sessionStorage.getItem("metrics_auth_token");
-    if (authToken) {
-      setIsAuthenticated(true);
-      cargarMetricas();
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-    cargarMetricas();
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("metrics_auth_token");
-    sessionStorage.removeItem("metrics_auth_user");
-    setIsAuthenticated(false);
-    setMetricas([]);
-  };
-
-  // Si no está autenticado, mostrar el login
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
-  }
-
+  // Función para cargar métricas (definida antes de usarla)
   const cargarMetricas = async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("🔄 Cargando métricas...");
       const response = await obtenerMetricas();
       console.log("Respuesta de métricas:", response);
       if (response && response.body && response.body.value) {
@@ -62,6 +36,38 @@ export default function Metrics() {
       setLoading(false);
     }
   };
+
+  // Verificar autenticación al cargar el componente
+  useEffect(() => {
+    const authToken = sessionStorage.getItem("metrics_auth_token");
+    if (authToken) {
+      console.log("✅ Usuario ya autenticado, cargando métricas...");
+      setIsAuthenticated(true);
+      cargarMetricas();
+    } else {
+      console.log("⚠️ Sin autenticación, mostrando login");
+      setLoading(false);
+    }
+  }, []);
+
+  const handleLoginSuccess = () => {
+    console.log("✅ Login exitoso, cargando métricas...");
+    setIsAuthenticated(true);
+    cargarMetricas();
+  };
+
+  const handleLogout = () => {
+    console.log("🚪 Cerrando sesión...");
+    sessionStorage.removeItem("metrics_auth_token");
+    sessionStorage.removeItem("metrics_auth_user");
+    setIsAuthenticated(false);
+    setMetricas([]);
+  };
+
+  // Si no está autenticado, mostrar el login
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const exportarCSV = () => {
     // Crear filas del CSV con todos los detalles
