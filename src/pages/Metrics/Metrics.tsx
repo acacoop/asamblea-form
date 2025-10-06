@@ -4,17 +4,43 @@ import { obtenerMetricas } from "../../services/services";
 import type { CooperativaMetrica } from "../../types/types";
 import HeaderForm from "../../components/HeaderForm/HeaderForm";
 import Footer from "../../components/Footer/Footer";
+import Login from "../../components/Login/Login";
 
 export default function Metrics() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metricas, setMetricas] = useState<CooperativaMetrica[]>([]);
   const [filtro, setFiltro] = useState<"todas" | "completas" | "incompletas">("todas");
   const [busqueda, setBusqueda] = useState("");
 
+  // Verificar autenticación al cargar el componente
   useEffect(() => {
-    cargarMetricas();
+    const authToken = sessionStorage.getItem("metrics_auth_token");
+    if (authToken) {
+      setIsAuthenticated(true);
+      cargarMetricas();
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    cargarMetricas();
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("metrics_auth_token");
+    sessionStorage.removeItem("metrics_auth_user");
+    setIsAuthenticated(false);
+    setMetricas([]);
+  };
+
+  // Si no está autenticado, mostrar el login
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const cargarMetricas = async () => {
     setLoading(true);
@@ -236,10 +262,20 @@ export default function Metrics() {
     );
   }
 
+  const usuario = sessionStorage.getItem("metrics_auth_user") || "Usuario";
+
   return (
     <div className="metrics">
       <div className="metrics-container">
         <HeaderForm titleForm="Métricas de Asamblea" showButtonBack={false} />
+
+        {/* Barra de usuario autenticado */}
+        <div className="auth-bar">
+          <span className="auth-user">👤 {usuario}</span>
+          <button className="logout-button" onClick={handleLogout} title="Cerrar sesión">
+            🚪 Salir
+          </button>
+        </div>
 
         {/* Resumen General */}
         <div className="metrics-summary">
