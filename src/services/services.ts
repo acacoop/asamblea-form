@@ -73,7 +73,7 @@ export async function guardarFormulario(payload: any) {
   }
 }
 
-import type { ConsultaDatosResponse } from "../types/types";
+import type { ConsultaDatosResponse, MetricasResponse } from "../types/types";
 
 export async function consultarDatos(codigo_cooperativa: string) {
   if (!CONSULTAR_ENDPOINT) return null;
@@ -88,6 +88,59 @@ export async function consultarDatos(codigo_cooperativa: string) {
       controller.signal
     );
     return data;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Obtiene las métricas de todas las cooperativas
+ */
+export async function obtenerMetricas(): Promise<MetricasResponse | null> {
+  const METRICAS_ENDPOINT =
+    "https://defaulta7cad06884854149bb950f323bdfa8.9e.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1433da937a6b48cf94231a7381de7676/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hGt42lXlEHglh4FzsbcDQx_gl8wKzEfM36wX3ClrxBU";
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+  try {
+    console.log("🔄 Obteniendo métricas desde el endpoint...");
+    const resp = await fetch(METRICAS_ENDPOINT, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    console.log("📡 Respuesta recibida:", resp.status, resp.statusText);
+
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      console.error("❌ Error en la respuesta:", errorText);
+      throw new Error(`Error HTTP ${resp.status}: ${resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    console.log("✅ Datos recibidos correctamente");
+    console.log("📊 Total de cooperativas:", data?.value?.length || 0);
+    
+    const response: MetricasResponse = {
+      statusCode: 200,
+      headers: {},
+      body: {
+        "@odata.nextLink": data["@odata.nextLink"],
+        value: data.value || []
+      }
+    };
+    
+    return response;
+  } catch (error) {
+    console.error("❌ Error al obtener métricas:", error);
+    if ((error as any).name === 'AbortError') {
+      console.error("⏱️ Timeout: La petición tardó más de 60 segundos");
+    }
+    return null;
   } finally {
     clearTimeout(timeoutId);
   }
