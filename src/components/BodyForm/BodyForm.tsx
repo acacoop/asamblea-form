@@ -64,6 +64,11 @@ Tener en cuenta: Un delegado puede votar por sí mismo, y representar por poder 
           onClick={() => navigate("/form")}
         />
       )}
+
+      <Button
+        label="Metricas"
+        onClick={() => navigate("/metrics-dashboard-2025")}
+      />
     </div>
   );
 };
