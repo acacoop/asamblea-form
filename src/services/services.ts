@@ -2,6 +2,7 @@ const AUTH_ENDPOINT = import.meta.env.VITE_AUTH_ENDPOINT;
 const CONSULTAR_ENDPOINT = import.meta.env.VITE_CONSULTAR_ENDPOINT;
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 const TIMEOUT = Number(import.meta.env.VITE_TIMEOUT ?? 30000);
+const METRICAS_ENDPOINT = import.meta.env.VITE_METRICAS_ENDPOINT;
 
 async function request<T>(
   url: string,
@@ -97,9 +98,6 @@ export async function consultarDatos(codigo_cooperativa: string) {
  * Obtiene las métricas de todas las cooperativas
  */
 export async function obtenerMetricas(): Promise<MetricasResponse | null> {
-  const METRICAS_ENDPOINT =
-    "https://defaulta7cad06884854149bb950f323bdfa8.9e.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1433da937a6b48cf94231a7381de7676/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hGt42lXlEHglh4FzsbcDQx_gl8wKzEfM36wX3ClrxBU";
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000);
 

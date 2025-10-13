@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import "./Login.css";
+const AUTH_METRICS_ENDPOINT = import.meta.env.VITE_AUTH_METRICS_ENDPOINT;
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -17,9 +18,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setLoading(true);
 
     try {
-      const AUTH_METRICS_ENDPOINT =
-        "https://defaulta7cad06884854149bb950f323bdfa8.9e.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0db163cd42914fcb9e12abcb70205e35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=33_XarL2mOtEhlaJo665zQZ2x0Hf6M2ArZH66kLQCgk";
-
       const response = await fetch(AUTH_METRICS_ENDPOINT, {
         method: "POST",
         headers: {
