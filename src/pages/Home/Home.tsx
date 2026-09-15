@@ -8,7 +8,7 @@ export default function Home() {
     <div className="home">
       <div className="form-container">
         <HeaderForm
-          titleForm="Asamblea General Ordinaria 2025"
+          titleForm="Asamblea General Ordinaria 2026"
           showButtonBack={false}
         />
         <BodyForm

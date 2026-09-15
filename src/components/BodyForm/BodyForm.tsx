@@ -31,7 +31,7 @@ const BodyForm: React.FC<BodyFormProps> = ({
         <>
           <Card
             title="📅 Fecha de la Asamblea"
-            description="31 de Octubre de 2025"
+            description="30 de Octubre de 2026"
           />
           <Card
             title="📋 Descripción"
@@ -47,8 +47,12 @@ Tener en cuenta: Un delegado puede votar por sí mismo, y representar por poder 
             title="ℹ️ Información Importante"
             description={
               <>
-                Asegúrese de completar toda la información requerida y verificar los datos antes de enviar el formulario. Por consultas dirigirse a{" "}
-                <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2025&body=Hola, tengo una consulta sobre la Asamblea 2025.">asamblea@acacoop.com.ar</a>
+                Asegúrese de completar toda la información requerida y verificar
+                los datos antes de enviar el formulario. Por consultas dirigirse
+                a{" "}
+                <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2025&body=Hola, tengo una consulta sobre la Asamblea 2025.">
+                  asamblea@acacoop.com.ar
+                </a>
               </>
             }
           />
