@@ -50,7 +50,7 @@ Tener en cuenta: Un delegado puede votar por sí mismo, y representar por poder 
                 Asegúrese de completar toda la información requerida y verificar
                 los datos antes de enviar el formulario. Por consultas dirigirse
                 a{" "}
-                <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2025&body=Hola, tengo una consulta sobre la Asamblea 2025.">
+                <a href="mailto:asamblea@acacoop.com.ar?subject=Consulta sobre Asamblea 2026&body=Hola, tengo una consulta sobre la Asamblea 2025.">
                   asamblea@acacoop.com.ar
                 </a>
               </>
